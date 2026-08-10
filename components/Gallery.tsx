@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Gallery({ images, alt }: { images: string[]; alt: string }) {
@@ -78,9 +79,9 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
             type="button"
             onClick={close}
             aria-label="닫기"
-            className="absolute top-4 right-4 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-xl text-white transition-colors hover:bg-white/25"
+            className="absolute top-4 right-4 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25"
           >
-            ✕
+            <X className="h-5 w-5" />
           </button>
 
           {images.length > 1 && (
@@ -111,9 +112,7 @@ function NavButton({ side, onClick }: { side: "left" | "right"; onClick: () => v
         side === "left" ? "left-3" : "right-3"
       }`}
     >
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d={side === "left" ? "m14 5-7 7 7 7" : "m10 5 7 7-7 7"} />
-      </svg>
+      {side === "left" ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
     </button>
   );
 }

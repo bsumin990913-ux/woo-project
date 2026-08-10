@@ -1,3 +1,4 @@
+import { ChevronLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -28,7 +29,8 @@ export default async function EditPostPage({ params }: Props) {
     <>
       <div className="mb-7">
         <Link href={`/admin/folders/${folder.id}`} className="chip">
-          ← {folder.name}
+          <ChevronLeft className="h-3.5 w-3.5" />
+          {folder.name}
         </Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h1 className="t-h2 text-ink">글 수정</h1>
@@ -38,7 +40,8 @@ export default async function EditPostPage({ params }: Props) {
               target="_blank"
               className="btn-ghost btn-sm"
             >
-              공개 페이지 보기 ↗
+              <ExternalLink className="h-3.5 w-3.5" />
+              공개 페이지 보기
             </Link>
           )}
         </div>

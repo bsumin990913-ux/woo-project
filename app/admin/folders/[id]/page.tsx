@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp, ChevronLeft, ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -32,7 +33,8 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
     <>
       <div className="mb-7">
         <Link href="/admin" className="chip">
-          ← 폴더 목록
+          <ChevronLeft className="h-3.5 w-3.5" />
+          폴더 목록
         </Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h1 className="t-h2 text-ink flex items-center gap-2.5">
@@ -44,7 +46,8 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
             {folder.name}
           </h1>
           <Link href={`/${encodeURIComponent(folder.slug)}`} target="_blank" className="btn-ghost btn-sm">
-            공개 페이지 보기 ↗
+            <ExternalLink className="h-3.5 w-3.5" />
+            공개 페이지 보기
           </Link>
         </div>
       </div>
@@ -62,7 +65,7 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
             <p className="t-sub mt-1 text-[14px]">이 폴더의 공개 페이지에 순서대로 나열됩니다.</p>
           </div>
           <Link href={`/admin/folders/${folder.id}/posts/new`} className="btn-primary btn-sm">
-            + 새 글
+            <Plus className="h-4 w-4" />새 글
           </Link>
         </div>
 
@@ -111,12 +114,14 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
 
                 <div className="flex shrink-0 gap-2">
                   <Link href={`/admin/folders/${folder.id}/posts/${post.id}`} className="btn-ghost btn-sm">
+                    <Pencil className="h-3.5 w-3.5" />
                     수정
                   </Link>
                   <form action={deletePostAction}>
                     <input type="hidden" name="id" value={post.id} />
                     <input type="hidden" name="folder_id" value={folder.id} />
                     <ConfirmButton className="btn-danger btn-sm" message={`"${post.title}" 글을 삭제할까요?`}>
+                      <Trash2 className="h-3.5 w-3.5" />
                       삭제
                     </ConfirmButton>
                   </form>
@@ -150,9 +155,9 @@ function ReorderButton({
         type="submit"
         disabled={disabled}
         aria-label={direction === "up" ? "위로" : "아래로"}
-        className="icon-btn h-6 w-6 rounded-md text-xs"
+        className="icon-btn h-6 w-6 rounded-md"
       >
-        {direction === "up" ? "↑" : "↓"}
+        {direction === "up" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       </button>
     </form>
   );

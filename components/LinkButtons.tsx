@@ -1,3 +1,5 @@
+import { ChevronRight } from "lucide-react";
+
 import PlatformIcon from "@/components/PlatformIcon";
 import { detectPlatform, fallbackLabel, normalizeUrl } from "@/lib/platform";
 import type { LinkItem } from "@/lib/types";
@@ -46,19 +48,7 @@ export default function LinkButtons({ links, compact = false }: { links: LinkIte
                 <span className="text-ink-3 block truncate text-[13px] leading-5">{prettyUrl(link.url)}</span>
               </span>
 
-              <span className="text-ink-3 group-hover:text-brand shrink-0 transition-all group-hover:translate-x-0.5">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-[18px] w-[18px]"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 5 7 7-7 7" />
-                </svg>
-              </span>
+              <ChevronRight className="text-ink-3 group-hover:text-brand h-[18px] w-[18px] shrink-0 transition-all group-hover:translate-x-0.5" />
             </a>
           </li>
         );

@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,10 +6,15 @@ import { notFound } from "next/navigation";
 import Gallery from "@/components/Gallery";
 import LinkButtons from "@/components/LinkButtons";
 import ThemeToggle from "@/components/ThemeToggle";
-import { getPublicFolderBySlug, getPublicPost } from "@/lib/queries";
+import { getPublicFolderBySlug, getPublicPost, listPublicPostParams } from "@/lib/queries";
 import { brandStyle } from "@/lib/theme";
 
 export const revalidate = 60;
+
+/** 공개된 글은 빌드 시 미리 만들어 둔다 → 목록에서 눌렀을 때 바로 뜬다. */
+export async function generateStaticParams() {
+  return listPublicPostParams();
+}
 
 type Params = { params: Promise<{ slug: string; postId: string }> };
 
@@ -55,17 +61,7 @@ export default async function PostPage({ params }: Params) {
         <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
           <div className="mb-9 flex items-center justify-between gap-3">
             <Link href={`/${encodeURIComponent(folder.slug)}`} className="chip min-w-0">
-              <svg
-                viewBox="0 0 24 24"
-                className="h-3.5 w-3.5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m15 5-7 7 7 7" />
-              </svg>
+              <ChevronLeft className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{folder.name}</span>
             </Link>
             <ThemeToggle />

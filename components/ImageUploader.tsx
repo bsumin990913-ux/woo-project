@@ -1,6 +1,30 @@
 "use client";
 
+import { ArrowLeft, ArrowRight, ImagePlus, Plus, X } from "lucide-react";
 import { useRef, useState } from "react";
+
+import { MEDIA_BUCKET, supabaseBrowser } from "@/lib/supabase-browser";
+
+const MAX_BYTES = 10 * 1024 * 1024;
+
+type SignedItem = { path: string; token: string; publicUrl: string };
+
+/** 서버가 JSON 이 아닌 걸 돌려줘도(413 "Request Entity Too Large" 등) 읽을 수 있는 에러로 바꾼다. */
+async function readJson<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    const snippet = text.trim().slice(0, 80) || `HTTP ${response.status}`;
+    throw new Error(`서버 응답을 읽지 못했습니다 (${response.status}): ${snippet}`);
+  }
+  if (!response.ok) {
+    const message = (parsed as { error?: string } | null)?.error;
+    throw new Error(message ?? `요청이 실패했습니다 (${response.status}).`);
+  }
+  return parsed as T;
+}
 
 export default function ImageUploader({
   name,
@@ -13,31 +37,61 @@ export default function ImageUploader({
   single?: boolean;
 }) {
   const [urls, setUrls] = useState<string[]>(defaultValue.filter(Boolean));
-  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [manualUrl, setManualUrl] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function upload(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    setBusy(true);
+  const busy = progress !== null;
+
+  async function upload(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList).slice(0, single ? 1 : 20);
+
+    const oversize = files.find((file) => file.size > MAX_BYTES);
+    if (oversize) {
+      setError(`${oversize.name}: 파일이 너무 큽니다 (최대 10MB).`);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
     setError(null);
+    setProgress({ done: 0, total: files.length });
+
     try {
-      const body = new FormData();
-      Array.from(files)
-        .slice(0, single ? 1 : files.length)
-        .forEach((file) => body.append("files", file));
+      // 1) 서버에서 파일마다 서명된 업로드 URL 을 받는다 (메타데이터만 오간다)
+      const { items } = await readJson<{ items: SignedItem[] }>(
+        await fetch("/api/upload", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            files: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
+          }),
+        }),
+      );
 
-      const response = await fetch("/api/upload", { method: "POST", body });
-      const json = (await response.json()) as { urls?: string[]; error?: string };
-      if (!response.ok) throw new Error(json.error ?? "업로드에 실패했습니다.");
+      // 2) 브라우저 → Supabase Storage 직접 업로드 (서버를 거치지 않음)
+      const storage = supabaseBrowser().storage.from(MEDIA_BUCKET);
+      const uploaded: string[] = [];
 
-      const uploaded = json.urls ?? [];
+      for (const [index, file] of files.entries()) {
+        const item = items[index];
+        if (!item) throw new Error("업로드 정보를 받지 못했습니다. 다시 시도해 주세요.");
+
+        const { error: uploadError } = await storage.uploadToSignedUrl(item.path, item.token, file, {
+          contentType: file.type,
+        });
+        if (uploadError) throw new Error(`${file.name}: ${uploadError.message}`);
+
+        uploaded.push(item.publicUrl);
+        setProgress({ done: index + 1, total: files.length });
+      }
+
       setUrls((prev) => (single ? uploaded.slice(0, 1) : [...prev, ...uploaded]));
     } catch (e) {
       setError(e instanceof Error ? e.message : "업로드에 실패했습니다.");
     } finally {
-      setBusy(false);
+      setProgress(null);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -65,7 +119,12 @@ export default function ImageUploader({
 
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn-ghost btn-sm" disabled={busy} onClick={() => inputRef.current?.click()}>
-          {busy ? "업로드 중…" : single ? "이미지 선택" : "이미지 추가 (여러 장 가능)"}
+          <ImagePlus className="h-4 w-4" />
+          {progress
+            ? `업로드 중… ${progress.done}/${progress.total}`
+            : single
+              ? "이미지 선택"
+              : "이미지 추가 (여러 장 가능)"}
         </button>
         <input
           ref={inputRef}
@@ -92,13 +151,12 @@ export default function ImageUploader({
           }}
         />
         <button type="button" className="btn-ghost btn-sm shrink-0" onClick={addManual}>
+          <Plus className="h-4 w-4" />
           추가
         </button>
       </div>
 
-      {error && (
-        <p className="rounded-tds-md bg-danger-weak text-danger px-3 py-2.5 text-xs font-medium">{error}</p>
-      )}
+      {error && <p className="rounded-tds-md bg-danger-weak text-danger px-3 py-2.5 text-xs font-medium">{error}</p>}
 
       {urls.length > 0 && (
         <div className={single ? "w-40" : "grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"}>
@@ -113,15 +171,15 @@ export default function ImageUploader({
                 {!single && (
                   <>
                     <MiniButton label="왼쪽으로" onClick={() => move(index, -1)} disabled={index === 0}>
-                      ←
+                      <ArrowLeft className="h-3.5 w-3.5" />
                     </MiniButton>
                     <MiniButton label="오른쪽으로" onClick={() => move(index, 1)} disabled={index === urls.length - 1}>
-                      →
+                      <ArrowRight className="h-3.5 w-3.5" />
                     </MiniButton>
                   </>
                 )}
                 <MiniButton label="삭제" onClick={() => setUrls((prev) => prev.filter((_, i) => i !== index))}>
-                  ✕
+                  <X className="h-3.5 w-3.5" />
                 </MiniButton>
               </div>
               {!single && index === 0 && (
@@ -155,7 +213,7 @@ function MiniButton({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="h-7 w-7 cursor-pointer rounded-md bg-white/15 text-xs text-white transition-colors hover:bg-white/30 disabled:opacity-30"
+      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-white/15 text-white transition-colors hover:bg-white/30 disabled:opacity-30"
     >
       {children}
     </button>

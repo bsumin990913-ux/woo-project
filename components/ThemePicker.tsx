@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Link2, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { BRAND_PRESETS, DEFAULT_BRAND, brandStyle, normalizeHex, safeBrand } from "@/lib/theme";
@@ -57,19 +58,7 @@ export default function ThemePicker({
                   : "inset 0 0 0 1px rgba(0,0,0,.08)",
               }}
             >
-              {active && (
-                <svg
-                  viewBox="0 0 24 24"
-                  className="absolute inset-0 m-auto h-4 w-4"
-                  fill="none"
-                  stroke="#fff"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m5 12.5 4.5 4.5L19 7.5" />
-                </svg>
-              )}
+              {active && <Check className="absolute inset-0 m-auto h-4 w-4 text-white" strokeWidth={3} />}
             </button>
           );
         })}
@@ -113,6 +102,7 @@ export default function ThemePicker({
               setDraft(DEFAULT_BRAND);
             }}
           >
+            <RotateCcw className="h-3.5 w-3.5" />
             기본색으로
           </button>
         )}
@@ -125,11 +115,8 @@ export default function ThemePicker({
         <p className="t-eyebrow mb-3">미리보기</p>
         <div className="brand-hero -mx-4 -mt-1 mb-4 px-4 py-5">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-tds-lg bg-brand text-on-brand">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M10.2 13.8a4.4 4.4 0 0 0 6.2 0l2.4-2.4a4.4 4.4 0 0 0-6.2-6.2l-1.2 1.2" strokeLinejoin="round" />
-                <path d="M13.8 10.2a4.4 4.4 0 0 0-6.2 0l-2.4 2.4a4.4 4.4 0 0 0 6.2 6.2l1.2-1.2" strokeLinejoin="round" />
-              </svg>
+            <span className="rounded-tds-lg bg-brand text-on-brand flex h-11 w-11 items-center justify-center">
+              <Link2 className="h-5 w-5" />
             </span>
             <div className="min-w-0">
               <p className="text-[15px] font-bold">내 폴더 이름</p>

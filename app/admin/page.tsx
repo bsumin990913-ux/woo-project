@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp, ExternalLink, Plus, Settings2, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import ConfirmButton from "@/components/ConfirmButton";
@@ -31,7 +32,7 @@ export default async function AdminHomePage() {
           </p>
         </div>
         <Link href="/admin/folders/new" className="btn-primary">
-          + 새 폴더
+          <Plus className="h-4 w-4" />새 폴더
         </Link>
       </div>
 
@@ -88,9 +89,11 @@ export default async function AdminHomePage() {
 
               <div className="flex shrink-0 flex-wrap gap-2">
                 <Link href={`/${encodeURIComponent(folder.slug)}`} target="_blank" className="btn-ghost btn-sm">
-                  보기 ↗
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  보기
                 </Link>
                 <Link href={`/admin/folders/${folder.id}`} className="btn-primary btn-sm">
+                  <Settings2 className="h-3.5 w-3.5" />
                   관리
                 </Link>
                 <form action={deleteFolderAction}>
@@ -99,6 +102,7 @@ export default async function AdminHomePage() {
                     className="btn-danger btn-sm"
                     message={`"${folder.name}" 폴더와 그 안의 글·사진이 모두 삭제됩니다. 계속할까요?`}
                   >
+                    <Trash2 className="h-3.5 w-3.5" />
                     삭제
                   </ConfirmButton>
                 </form>
@@ -120,9 +124,9 @@ function ReorderButton({ id, direction, disabled }: { id: string; direction: "up
         type="submit"
         disabled={disabled}
         aria-label={direction === "up" ? "위로" : "아래로"}
-        className="icon-btn h-6 w-6 rounded-md text-xs"
+        className="icon-btn h-6 w-6 rounded-md"
       >
-        {direction === "up" ? "↑" : "↓"}
+        {direction === "up" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       </button>
     </form>
   );

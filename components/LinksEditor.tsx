@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import PlatformIcon from "@/components/PlatformIcon";
@@ -70,17 +71,17 @@ export default function LinksEditor({
 
             <div className="flex shrink-0 gap-1">
               <IconButton label="위로" onClick={() => move(index, -1)} disabled={index === 0}>
-                ↑
+                <ArrowUp className="h-4 w-4" />
               </IconButton>
               <IconButton label="아래로" onClick={() => move(index, 1)} disabled={index === links.length - 1}>
-                ↓
+                <ArrowDown className="h-4 w-4" />
               </IconButton>
               <IconButton
                 label="삭제"
                 danger
                 onClick={() => setLinks((prev) => prev.filter((_, i) => i !== index))}
               >
-                ✕
+                <X className="h-4 w-4" />
               </IconButton>
             </div>
           </div>
@@ -92,7 +93,8 @@ export default function LinksEditor({
         className="btn-ghost btn-sm"
         onClick={() => setLinks((prev) => [...prev, { label: "", url: "" }])}
       >
-        + 링크 추가
+        <Plus className="h-4 w-4" />
+        링크 추가
       </button>
     </div>
   );
@@ -118,7 +120,7 @@ function IconButton({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={`icon-btn h-9 w-9 rounded-tds-md text-sm ${danger ? "text-danger hover:bg-danger-weak" : ""}`}
+      className={`icon-btn rounded-tds-md h-9 w-9 ${danger ? "text-danger hover:bg-danger-weak" : ""}`}
     >
       {children}
     </button>

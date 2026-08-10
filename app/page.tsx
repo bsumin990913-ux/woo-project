@@ -1,3 +1,4 @@
+import { Layers } from "lucide-react";
 import Link from "next/link";
 
 import LinkButtons from "@/components/LinkButtons";
@@ -25,8 +26,8 @@ export default async function HomePage() {
         <div className="mx-auto max-w-5xl px-5 pt-6 pb-14 sm:pt-8 sm:pb-20">
           <div className="mb-12 flex items-center justify-between sm:mb-16">
             <span className="text-ink flex items-center gap-2 text-[15px] font-extrabold tracking-tight">
-              <span className="bg-brand text-on-brand flex h-7 w-7 items-center justify-center rounded-[9px] text-xs">
-                W
+              <span className="bg-brand text-on-brand flex h-7 w-7 items-center justify-center rounded-[9px]">
+                <Layers className="h-4 w-4" />
               </span>
               Works
             </span>

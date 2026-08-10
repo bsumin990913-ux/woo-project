@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -18,7 +19,8 @@ export default async function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center justify-between">
           <Link href="/" className="chip">
-            ← 사이트로
+            <ChevronLeft className="h-3.5 w-3.5" />
+            사이트로
           </Link>
           <ThemeToggle />
         </div>

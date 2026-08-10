@@ -1,13 +1,20 @@
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import LinkButtons from "@/components/LinkButtons";
 import ThemeToggle from "@/components/ThemeToggle";
-import { getPublicFolderBySlug, listPublicPosts } from "@/lib/queries";
+import { getPublicFolderBySlug, listPublicPosts, listPublicSlugs } from "@/lib/queries";
 import { brandStyle } from "@/lib/theme";
 
 export const revalidate = 60;
+
+/** 공개된 폴더는 빌드 시 미리 만들어 둔다 → 방문 시 DB 왕복 없이 바로 뜬다.
+ *  목록에 없는 새 폴더는 첫 방문 때 생성된 뒤 캐시된다. */
+export async function generateStaticParams() {
+  return (await listPublicSlugs()).map((slug) => ({ slug }));
+}
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -57,17 +64,7 @@ export default async function FolderPage({ params }: Params) {
         <div className="mx-auto max-w-2xl px-5 pt-5 pb-16">
           <div className="mb-10 flex items-center justify-between">
             <Link href="/" className="chip">
-              <svg
-                viewBox="0 0 24 24"
-                className="h-3.5 w-3.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m15 5-7 7 7 7" />
-              </svg>
+              <ChevronLeft className="h-3.5 w-3.5" />
               전체 목록
             </Link>
             <ThemeToggle />
@@ -137,10 +134,7 @@ export default async function FolderPage({ params }: Params) {
                         />
                       ) : (
                         <span className="rounded-tds-lg bg-brand-weak text-brand flex h-[68px] w-[68px] shrink-0 items-center justify-center">
-                          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                            <path d="M6.5 3.5h6.6l4.9 4.9v12.1H6.5z" strokeLinejoin="round" />
-                            <path d="M13 3.5v5h5" />
-                          </svg>
+                          <FileText className="h-6 w-6" strokeWidth={1.7} />
                         </span>
                       )}
 
@@ -155,19 +149,7 @@ export default async function FolderPage({ params }: Params) {
                         </span>
                       </span>
 
-                      <span className="text-ink-3 group-hover:text-brand shrink-0 transition-all group-hover:translate-x-0.5">
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-[18px] w-[18px]"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="m9 5 7 7-7 7" />
-                        </svg>
-                      </span>
+                      <ChevronRight className="text-ink-3 group-hover:text-brand h-[18px] w-[18px] shrink-0 transition-all group-hover:translate-x-0.5" />
                     </Link>
                   </li>
                 ))}

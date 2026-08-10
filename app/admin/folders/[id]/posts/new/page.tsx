@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,7 +17,8 @@ export default async function NewPostPage({ params }: { params: Promise<{ id: st
     <>
       <div className="mb-7">
         <Link href={`/admin/folders/${folder.id}`} className="chip">
-          ← {folder.name}
+          <ChevronLeft className="h-3.5 w-3.5" />
+          {folder.name}
         </Link>
         <h1 className="t-h2 text-ink mt-3">새 글 쓰기</h1>
       </div>
