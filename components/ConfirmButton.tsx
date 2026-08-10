@@ -18,13 +18,15 @@ export default function ConfirmButton({
   return (
     <button
       type="submit"
-      className={className}
+      className={pending ? `${className} btn-loading` : className}
       disabled={pending}
+      aria-busy={pending}
+      aria-label={pending ? pendingLabel : undefined}
       onClick={(event) => {
         if (!window.confirm(message)) event.preventDefault();
       }}
     >
-      {pending ? pendingLabel : children}
+      {children}
     </button>
   );
 }

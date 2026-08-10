@@ -35,7 +35,7 @@ export default function LinksEditor({
       <input type="hidden" name={name} value={JSON.stringify(links)} />
 
       {links.length === 0 && (
-        <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+        <p className="border-line text-ink-3 rounded-tds-lg border border-dashed px-4 py-7 text-center text-sm">
           아직 링크가 없습니다. 인스타그램·유튜브·틱톡 등 주소를 추가해 보세요.
         </p>
       )}
@@ -45,7 +45,7 @@ export default function LinksEditor({
         return (
           <div
             key={index}
-            className="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950/50"
+            className="border-line rounded-tds-lg flex flex-col gap-2 border p-2.5 sm:flex-row sm:items-center"
           >
             <span
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
@@ -118,11 +118,7 @@ function IconButton({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={`h-9 w-9 cursor-pointer rounded-lg border text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${
-        danger
-          ? "border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900/60 dark:hover:bg-red-950/40"
-          : "border-zinc-200 text-zinc-500 hover:bg-white dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-      }`}
+      className={`icon-btn h-9 w-9 rounded-tds-md text-sm ${danger ? "text-danger hover:bg-danger-weak" : ""}`}
     >
       {children}
     </button>

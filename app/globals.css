@@ -3,17 +3,126 @@
 /* 다크 모드를 <html class="dark"> 로 직접 제어 (토글 버튼용) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --font-sans: "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
-}
+/* ============================================================
+   1. 디자인 토큰  (Toss TDS Mobile 규칙 기반)
+   - 중립색 / 타이포 / 간격 / 라운드는 TDS 값을 그대로 따른다.
+   - 핵심 컬러(--brand)만 폴더별로 갈아끼우면 나머지는 전부 파생된다.
+   ============================================================ */
 
 :root {
   color-scheme: light;
+
+  /* 기본 핵심 컬러 = TDS 인터랙션 블루 */
+  --brand: #3182f6;
+
+  /* 중립 팔레트 (TDS) */
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f2f4f6;
+  --line: #e5e8eb;
+  --ink: #191f28;
+  --ink-2: #4e5968;
+  --ink-3: #8b95a1;
+  --danger: #e42939;
+  --danger-weak: #fdeced;
+
+  /* 그림자: TDS 는 공식 토큰이 없어 로컬 확장으로 아주 얕게만 쓴다 */
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-2: 0 2px 8px -2px rgba(16, 24, 40, 0.08), 0 12px 28px -16px rgba(16, 24, 40, 0.18);
+  --shadow-3: 0 8px 20px -6px rgba(16, 24, 40, 0.14), 0 24px 48px -24px rgba(16, 24, 40, 0.28);
 }
 
 :root.dark {
   color-scheme: dark;
+
+  --canvas: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1e242c;
+  --line: #262d36;
+  --ink: #f0f3f6;
+  --ink-2: #b1bac4;
+  --ink-3: #7d8590;
+  --danger: #ff6b74;
+  --danger-weak: #2b1417;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 8px -2px rgba(0, 0, 0, 0.5), 0 12px 28px -16px rgba(0, 0, 0, 0.7);
+  --shadow-3: 0 8px 20px -6px rgba(0, 0, 0, 0.55), 0 24px 48px -24px rgba(0, 0, 0, 0.8);
+}
+
+/* ── 핵심 컬러에서 파생되는 값들 ─────────────────────────────
+   CSS 커스텀 프로퍼티의 var() 는 "선언된 엘리먼트" 기준으로 계산된다.
+   그래서 파생 토큰을 .theme 에 같이 걸어 두고, 그 엘리먼트에
+   style="--brand: #xxxxxx" 를 주면 파생값까지 함께 갈아탄다. */
+:root,
+.theme {
+  --brand-hover: color-mix(in oklab, var(--brand) 86%, #000);
+  --brand-active: color-mix(in oklab, var(--brand) 74%, #000);
+  --brand-weak: color-mix(in srgb, var(--brand) 11%, #fff);
+  --brand-weak-hover: color-mix(in srgb, var(--brand) 18%, #fff);
+  --brand-weak-fg: color-mix(in oklab, var(--brand) 84%, #000);
+  --brand-ring: color-mix(in srgb, var(--brand) 24%, transparent);
+  --brand-tint: color-mix(in srgb, var(--brand) 6%, var(--canvas));
+  --brand-line: color-mix(in srgb, var(--brand) 26%, var(--line));
+  /* 핵심 컬러 위에 올라가는 글자색. 밝은 색을 넣으면 JS 가 어두운 글자로 덮어쓴다 */
+  --on-brand: #ffffff;
+}
+
+:root.dark,
+.dark .theme {
+  --brand-hover: color-mix(in oklab, var(--brand) 88%, #fff);
+  --brand-active: color-mix(in oklab, var(--brand) 74%, #fff);
+  --brand-weak: color-mix(in srgb, var(--brand) 20%, #131922);
+  --brand-weak-hover: color-mix(in srgb, var(--brand) 30%, #131922);
+  --brand-weak-fg: color-mix(in srgb, var(--brand) 72%, #fff);
+  --brand-ring: color-mix(in srgb, var(--brand) 34%, transparent);
+  --brand-tint: color-mix(in srgb, var(--brand) 10%, var(--canvas));
+  --brand-line: color-mix(in srgb, var(--brand) 30%, var(--line));
+}
+
+/* ── Tailwind 유틸리티로 노출 ───────────────────────────────
+   inline 을 써야 utility 가 var(--brand) 를 "그대로" 참조해서
+   폴더별 스코프 오버라이드가 먹는다. */
+@theme inline {
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-weak: var(--brand-weak);
+  --color-brand-weak-fg: var(--brand-weak-fg);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-line: var(--brand-line);
+  --color-on-brand: var(--on-brand);
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-danger: var(--danger);
+  --color-danger-weak: var(--danger-weak);
+
+  /* TDS spacing: 4 / 6 / 8 / 16 / 24 / 32 */
+  --radius-tds-sm: 8px;
+  --radius-tds-md: 10px;
+  --radius-tds-lg: 14px;
+  --radius-tds-xl: 16px;
+  --radius-sheet: 28px;
+
+  --shadow-soft: var(--shadow-1);
+  --shadow-card: var(--shadow-2);
+  --shadow-float: var(--shadow-3);
+}
+
+/* ============================================================
+   2. 베이스
+   ============================================================ */
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -21,64 +130,536 @@ html {
 }
 
 body {
-  @apply bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+  background: var(--canvas);
+  color: var(--ink);
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-@layer components {
-  .card {
-    @apply rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900;
-  }
+::selection {
+  background: var(--brand-weak);
+  color: var(--brand-weak-fg);
+}
 
-  /* 모든 버튼이 공유하는 뼈대 (Tailwind v4 에서는 @apply 로 커스텀 클래스를
-     참조할 수 없어 셀렉터를 묶어서 정의한다) */
-  .btn,
-  .btn-primary,
-  .btn-ghost,
-  .btn-danger {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
-           transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-  }
-
-  .btn-primary {
-    @apply bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200;
-  }
-
-  .btn-ghost {
-    @apply border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100
-           dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800;
-  }
-
-  .btn-danger {
-    @apply border border-red-200 bg-white text-red-600 hover:bg-red-50
-           dark:border-red-900/60 dark:bg-zinc-900 dark:text-red-400 dark:hover:bg-red-950/40;
-  }
-
-  .btn-sm {
-    @apply rounded-lg px-3 py-1.5 text-xs;
-  }
-
-  .label {
-    @apply mb-1.5 block text-sm font-semibold text-zinc-700 dark:text-zinc-300;
-  }
-
-  .hint {
-    @apply mt-1.5 text-xs text-zinc-500 dark:text-zinc-400;
-  }
-
-  .input {
-    @apply w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-zinc-900
-           placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 focus:outline-none
-           dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600
-           dark:focus:border-zinc-400 dark:focus:ring-white/10;
-  }
-
-  .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* 소개글의 줄바꿈을 그대로 살린다 */
+/* ============================================================
+   3. 타이포그래피 (TDS 문서 위계)
+   ============================================================ */
+
+.t-h1 {
+  font-size: 32px;
+  line-height: 42px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+.t-h2 {
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.t-h3 {
+  font-size: 19px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 400;
+}
+.t-sub {
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+.t-caption {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.t-eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@media (min-width: 640px) {
+  .t-h1 {
+    font-size: 36px;
+    line-height: 48px;
+  }
+  .t-h2 {
+    font-size: 28px;
+    line-height: 40px;
+  }
+}
+
 .prose-plain {
-  @apply text-[15px] leading-7 whitespace-pre-wrap text-zinc-600 dark:text-zinc-300;
+  font-size: 16px;
+  line-height: 28px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink-2);
+}
+
+/* ============================================================
+   4. 컴포넌트
+   ============================================================ */
+
+/* ── 카드 / 시트 ─────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.card-flat {
+  background: var(--surface-2);
+  border-radius: 20px;
+}
+
+.sheet {
+  background: var(--surface);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  box-shadow: 0 -8px 32px -20px rgba(16, 24, 40, 0.35);
+}
+
+.sheet-grabber {
+  width: 44px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  margin: 0 auto;
+}
+
+/* ── 버튼 ──────────────────────────────────────────────────
+   TDS 버튼 스케일: small 32/8 · medium 38/10 · large 48/14 · xlarge 56/16
+   기본값은 그 사이의 실사용 사이즈(44/12)로 둔다.               */
+.btn,
+.btn-primary,
+.btn-weak,
+.btn-neutral,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.08s ease,
+    box-shadow 0.15s ease;
+}
+
+.btn:active,
+.btn-primary:active,
+.btn-weak:active,
+.btn-neutral:active,
+.btn-ghost:active,
+.btn-danger:active {
+  transform: scale(0.975);
+}
+
+.btn:disabled,
+.btn-primary:disabled,
+.btn-weak:disabled,
+.btn-neutral:disabled,
+.btn-ghost:disabled,
+.btn-danger:disabled,
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.4;
+  transform: none;
+}
+
+.btn:focus-visible,
+.btn-primary:focus-visible,
+.btn-weak:focus-visible,
+.btn-neutral:focus-visible,
+.btn-ghost:focus-visible,
+.btn-danger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--brand-ring);
+}
+
+/* fill · primary */
+.btn-primary {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+
+/* weak · primary (TDS weak 타입) */
+.btn-weak {
+  background: var(--brand-weak);
+  color: var(--brand-weak-fg);
+}
+.btn-weak:hover:not(:disabled) {
+  background: var(--brand-weak-hover);
+}
+
+/* 중립 (회색 채움) */
+.btn-neutral {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+.btn-neutral:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface-2) 88%, var(--ink));
+}
+
+/* 라인 */
+.btn-ghost {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--line) 60%, var(--ink-3));
+}
+
+/* 위험 */
+.btn-danger {
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--line));
+  color: var(--danger);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-weak);
+}
+.btn-danger:focus-visible {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 24%, transparent);
+}
+
+/* 사이즈 */
+.btn-sm {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-tds-sm);
+  font-size: 13px;
+  gap: 4px;
+}
+.btn-lg {
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-tds-lg);
+  font-size: 16px;
+}
+.btn-xl {
+  height: 56px;
+  padding: 0 20px;
+  border-radius: var(--radius-tds-xl);
+  font-size: 17px;
+}
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* 로딩: TDS 는 로딩 중에도 버튼 폭을 유지한다 */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+}
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  color: inherit;
+  opacity: 0.9;
+  animation: spin 0.6s linear infinite;
+}
+.btn-primary.btn-loading::after {
+  border-color: var(--on-brand);
+  border-top-color: transparent;
+}
+.btn-ghost.btn-loading::after,
+.btn-neutral.btn-loading::after {
+  border-color: var(--ink-3);
+  border-top-color: transparent;
+}
+.btn-weak.btn-loading::after {
+  border-color: var(--brand-weak-fg);
+  border-top-color: transparent;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── 입력 (TDS TextField · box 타입) ────────────────────── */
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: -0.02em;
+}
+
+.hint {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--ink-3);
+}
+
+.input {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 16px;
+  border-radius: var(--radius-tds-lg);
+  border: 1px solid transparent;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+.input:hover:not(:focus):not(:disabled) {
+  background: color-mix(in srgb, var(--surface-2) 92%, var(--ink));
+}
+
+.input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-ring);
+}
+
+.input:disabled,
+.input[readonly] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input-error {
+  border-color: var(--danger);
+}
+
+textarea.input {
+  line-height: 26px;
+}
+
+/* ── 배지 (TDS Badge) ───────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.badge-brand {
+  background: var(--brand-weak);
+  color: var(--brand-weak-fg);
+}
+
+.badge-live {
+  background: color-mix(in srgb, #12b886 14%, var(--canvas));
+  color: color-mix(in oklab, #12b886 82%, #000);
+}
+.dark .badge-live {
+  color: color-mix(in srgb, #2fe0aa 80%, #fff);
+}
+
+/* ── 링크 타일 (링크트리 본체) ──────────────────────────── */
+.link-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-tds-xl);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.link-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-line);
+  box-shadow: var(--shadow-2);
+}
+
+.link-tile:active {
+  transform: scale(0.985);
+  box-shadow: var(--shadow-1);
+}
+
+.link-tile:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--brand-ring);
+}
+
+/* ── 칩 / 구분선 ────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--brand-line);
+  background: var(--brand-weak);
+  color: var(--brand-weak-fg);
+}
+
+.divider {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+}
+
+/* ── 아이콘 버튼 ────────────────────────────────────────── */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.08s ease;
+}
+.icon-btn:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+.icon-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--brand-ring);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── 브랜드 히어로 배경 ─────────────────────────────────── */
+.brand-hero {
+  background:
+    radial-gradient(120% 120% at 15% 0%, color-mix(in srgb, var(--brand) 26%, transparent) 0%, transparent 62%),
+    radial-gradient(90% 90% at 95% 8%, color-mix(in srgb, var(--brand) 16%, transparent) 0%, transparent 60%),
+    var(--canvas);
+}
+
+.brand-glow {
+  background: radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, var(--brand) 22%, transparent) 0%, transparent 70%);
+}
+
+/* ── 진입 애니메이션 ────────────────────────────────────── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── 스크롤바 ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-3) 40%, transparent);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }

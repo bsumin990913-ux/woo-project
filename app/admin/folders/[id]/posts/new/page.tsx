@@ -15,13 +15,10 @@ export default async function NewPostPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <div className="mb-7">
-        <Link
-          href={`/admin/folders/${folder.id}`}
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
+        <Link href={`/admin/folders/${folder.id}`} className="chip">
           ← {folder.name}
         </Link>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight">새 글 쓰기</h1>
+        <h1 className="t-h2 text-ink mt-3">새 글 쓰기</h1>
       </div>
 
       <PostForm folderId={folder.id} />

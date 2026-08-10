@@ -27,14 +27,11 @@ export default async function EditPostPage({ params }: Props) {
   return (
     <>
       <div className="mb-7">
-        <Link
-          href={`/admin/folders/${folder.id}`}
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
+        <Link href={`/admin/folders/${folder.id}`} className="chip">
           ← {folder.name}
         </Link>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-extrabold tracking-tight">글 수정</h1>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="t-h2 text-ink">글 수정</h1>
           {folder.published && post.published && (
             <Link
               href={`/${encodeURIComponent(folder.slug)}/${post.id}`}

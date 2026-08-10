@@ -27,12 +27,10 @@ export default function LoginForm() {
       </div>
 
       {state.error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
-          {state.error}
-        </p>
+        <p className="rounded-tds-lg bg-danger-weak px-4 py-3.5 text-sm font-medium text-danger">{state.error}</p>
       )}
 
-      <SubmitButton className="btn-primary w-full" pendingLabel="확인 중…">
+      <SubmitButton className="btn-primary btn-lg btn-block" pendingLabel="확인 중…">
         로그인
       </SubmitButton>
     </form>

@@ -1,3 +1,5 @@
+import { safeBrand } from "@/lib/theme";
+
 export type LinkItem = {
   label: string;
   url: string;
@@ -11,6 +13,8 @@ export type Folder = {
   intro: string;
   thumbnail_url: string | null;
   links: LinkItem[];
+  /** 이 폴더의 핵심 컬러 (#rrggbb) */
+  theme_color: string;
   published: boolean;
   sort_order: number;
   created_at: string;
@@ -58,6 +62,7 @@ export function normalizeFolder(row: Record<string, unknown>): Folder {
     intro: String(row.intro ?? ""),
     thumbnail_url: (row.thumbnail_url as string) || null,
     links: normalizeLinks(row.links),
+    theme_color: safeBrand(typeof row.theme_color === "string" ? row.theme_color : null),
     published: row.published !== false,
     sort_order: Number(row.sort_order ?? 0),
     created_at: String(row.created_at ?? ""),

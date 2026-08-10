@@ -18,15 +18,13 @@ export default function PostForm({ folderId, post }: { folderId: string; post?: 
       {post && <input type="hidden" name="id" value={post.id} />}
 
       {state.error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
-          {state.error}
-        </p>
+        <p className="rounded-tds-lg bg-danger-weak px-4 py-3.5 text-sm font-medium text-danger">{state.error}</p>
       )}
 
       <section className="card space-y-5 p-5 sm:p-6">
         <div>
           <label className="label" htmlFor="title">
-            제목 <span className="text-red-500">*</span>
+            제목 <span className="text-danger">*</span>
           </label>
           <input
             id="title"
@@ -65,12 +63,12 @@ export default function PostForm({ folderId, post }: { folderId: string; post?: 
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
-        <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium">
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold">
           <input
             type="checkbox"
             name="published"
             defaultChecked={post ? post.published : true}
-            className="h-4 w-4 cursor-pointer accent-zinc-900 dark:accent-white"
+            className="accent-brand h-[18px] w-[18px] cursor-pointer"
           />
           공개하기
         </label>

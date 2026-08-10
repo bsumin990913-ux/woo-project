@@ -33,7 +33,7 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
       <div
         className={
           images.length === 1
-            ? "overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800"
+            ? "border-line overflow-hidden rounded-[20px] border"
             : "grid grid-cols-2 gap-2.5 sm:grid-cols-3"
         }
       >
@@ -42,8 +42,8 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
             key={`${src}-${index}`}
             type="button"
             onClick={() => setOpenIndex(index)}
-            className={`group cursor-zoom-in overflow-hidden bg-zinc-100 dark:bg-zinc-800 ${
-              images.length === 1 ? "block w-full" : "aspect-square rounded-xl border border-zinc-200 dark:border-zinc-800"
+            className={`bg-surface-2 group cursor-zoom-in overflow-hidden ${
+              images.length === 1 ? "block w-full" : "border-line rounded-tds-lg aspect-square border"
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -75,7 +75,7 @@ export default function ImageUploader({
           className="hidden"
           onChange={(e) => upload(e.target.files)}
         />
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">jpg · png · webp · gif / 장당 최대 10MB</span>
+        <span className="text-ink-3 text-xs font-medium">jpg · png · webp · gif / 장당 최대 10MB</span>
       </div>
 
       <div className="flex gap-2">
@@ -97,9 +97,7 @@ export default function ImageUploader({
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950/40 dark:text-red-400">
-          {error}
-        </p>
+        <p className="rounded-tds-md bg-danger-weak text-danger px-3 py-2.5 text-xs font-medium">{error}</p>
       )}
 
       {urls.length > 0 && (
@@ -107,7 +105,7 @@ export default function ImageUploader({
           {urls.map((url, index) => (
             <figure
               key={`${url}-${index}`}
-              className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800"
+              className="border-line bg-surface-2 rounded-tds-lg group relative overflow-hidden border"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt="" className="aspect-square w-full object-cover" loading="lazy" />

@@ -15,6 +15,7 @@ create table if not exists public.folders (
   intro         text not null default '',      -- 소개글(여러 줄)
   thumbnail_url text,                          -- 썸네일 이미지
   links         jsonb not null default '[]'::jsonb, -- [{label,url}]
+  theme_color   text not null default '#3182f6', -- 폴더별 핵심 컬러 (#rrggbb)
   published     boolean not null default true, -- 비공개면 목록/페이지에서 숨김
   sort_order    integer not null default 0,
   created_at    timestamptz not null default now(),
@@ -34,6 +35,11 @@ create table if not exists public.posts (
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
+
+-- ── 기존에 만들어 둔 테이블을 위한 추가 컬럼 ────────────────
+--   (이미 folders 테이블을 만든 뒤라면 이 줄이 테마 컬러를 붙여 줍니다)
+alter table public.folders
+  add column if not exists theme_color text not null default '#3182f6';
 
 create index if not exists posts_folder_id_idx on public.posts (folder_id);
 create index if not exists folders_sort_idx    on public.folders (sort_order, created_at desc);

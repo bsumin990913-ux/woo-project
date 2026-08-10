@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createSession, destroySession, isAdminPasswordSet, requireAdmin, verifyPassword } from "@/lib/auth";
 import { MEDIA_BUCKET, supabaseAdmin } from "@/lib/supabase";
 import { normalizeUrl } from "@/lib/platform";
+import { safeBrand } from "@/lib/theme";
 import { normalizeImages, normalizeLinks, type LinkItem } from "@/lib/types";
 
 export type FormState = { error?: string };
@@ -104,6 +105,7 @@ export async function saveFolderAction(_prev: FormState, formData: FormData): Pr
     intro: str(formData, "intro"),
     thumbnail_url: str(formData, "thumbnail_url") || null,
     links: parseLinks(str(formData, "links")),
+    theme_color: safeBrand(str(formData, "theme_color")),
     published: bool(formData, "published"),
   };
 
@@ -253,6 +255,9 @@ function friendlyDbError(message: string, slug: string): string {
   }
   if (message.includes('relation "public.folders" does not exist')) {
     return "테이블이 아직 없습니다. supabase/schema.sql 을 Supabase SQL Editor 에서 실행해 주세요.";
+  }
+  if (message.includes("theme_color")) {
+    return "테마 컬러 컬럼이 아직 없습니다. supabase/schema.sql 을 Supabase SQL Editor 에서 다시 한 번 실행해 주세요.";
   }
   return message;
 }

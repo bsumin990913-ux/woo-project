@@ -6,6 +6,7 @@ import { useActionState, useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
 import LinksEditor from "@/components/LinksEditor";
 import SubmitButton from "@/components/SubmitButton";
+import ThemePicker from "@/components/ThemePicker";
 import { saveFolderAction, type FormState } from "@/lib/actions";
 import { slugify } from "@/lib/platform";
 import type { Folder } from "@/lib/types";
@@ -26,18 +27,16 @@ export default function FolderForm({ folder }: { folder?: Folder }) {
       {folder && <input type="hidden" name="id" value={folder.id} />}
 
       {state.error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
-          {state.error}
-        </p>
+        <p className="rounded-tds-lg bg-danger-weak px-4 py-3.5 text-sm font-medium text-danger">{state.error}</p>
       )}
 
       <section className="card space-y-5 p-5 sm:p-6">
-        <h2 className="text-sm font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">기본 정보</h2>
+        <h2 className="t-eyebrow">기본 정보</h2>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="name">
-              폴더명 <span className="text-red-500">*</span>
+              폴더명 <span className="text-danger">*</span>
             </label>
             <input
               id="name"
@@ -52,10 +51,10 @@ export default function FolderForm({ folder }: { folder?: Folder }) {
 
           <div>
             <label className="label" htmlFor="slug">
-              공개 주소 <span className="text-red-500">*</span>
+              공개 주소 <span className="text-danger">*</span>
             </label>
             <div className="flex items-center gap-1.5">
-              <span className="shrink-0 text-sm text-zinc-400">/</span>
+              <span className="text-ink-3 shrink-0 text-sm">/</span>
               <input
                 id="slug"
                 name="slug"
@@ -108,22 +107,32 @@ export default function FolderForm({ folder }: { folder?: Folder }) {
 
       <section className="card space-y-4 p-5 sm:p-6">
         <div>
-          <h2 className="text-sm font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">링크</h2>
+          <h2 className="t-eyebrow">테마</h2>
+          <p className="hint">
+            폴더마다 핵심 컬러를 따로 정할 수 있어요. 버튼·아이콘·배경·포커스 색이 이 한 가지 색에서 자동으로 만들어집니다.
+          </p>
+        </div>
+        <ThemePicker name="theme_color" defaultValue={folder?.theme_color} />
+      </section>
+
+      <section className="card space-y-4 p-5 sm:p-6">
+        <div>
+          <h2 className="t-eyebrow">링크</h2>
           <p className="hint">주소를 넣으면 인스타·유튜브·틱톡 등을 자동으로 알아보고 아이콘을 붙여 줍니다.</p>
         </div>
         <LinksEditor name="links" defaultValue={folder?.links ?? []} />
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
-        <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium">
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold">
           <input
             type="checkbox"
             name="published"
             defaultChecked={folder ? folder.published : true}
-            className="h-4 w-4 cursor-pointer accent-zinc-900 dark:accent-white"
+            className="accent-brand h-[18px] w-[18px] cursor-pointer"
           />
           공개하기
-          <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">(끄면 나만 볼 수 있습니다)</span>
+          <span className="text-ink-3 text-xs font-normal">(끄면 나만 볼 수 있습니다)</span>
         </label>
 
         <div className="flex gap-2">

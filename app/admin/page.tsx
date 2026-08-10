@@ -4,6 +4,7 @@ import ConfirmButton from "@/components/ConfirmButton";
 import SetupNotice from "@/components/SetupNotice";
 import { deleteFolderAction, moveFolderAction } from "@/lib/actions";
 import { listAllFolders } from "@/lib/queries";
+import { brandStyle } from "@/lib/theme";
 import type { FolderWithCount } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -24,8 +25,8 @@ export default async function AdminHomePage() {
     <>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">프로젝트 폴더</h1>
-          <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+          <h1 className="t-h2 text-ink">프로젝트 폴더</h1>
+          <p className="t-sub mt-1.5 text-[14px]">
             폴더 하나가 공개 페이지 하나입니다. 순서를 바꾸면 방문자 화면에도 그대로 반영돼요.
           </p>
         </div>
@@ -36,7 +37,7 @@ export default async function AdminHomePage() {
 
       {folders.length === 0 ? (
         <div className="card p-14 text-center">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">아직 폴더가 없습니다.</p>
+          <p className="t-sub">아직 폴더가 없습니다.</p>
           <Link href="/admin/folders/new" className="btn-primary mt-5">
             첫 폴더 만들기
           </Link>
@@ -44,7 +45,11 @@ export default async function AdminHomePage() {
       ) : (
         <ul className="space-y-3">
           {folders.map((folder, index) => (
-            <li key={folder.id} className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
+            <li
+              key={folder.id}
+              className="theme card flex flex-col gap-4 p-4 sm:flex-row sm:items-center"
+              style={brandStyle(folder.theme_color)}
+            >
               <div className="flex flex-col gap-1">
                 <ReorderButton id={folder.id} direction="up" disabled={index === 0} />
                 <ReorderButton id={folder.id} direction="down" disabled={index === folders.length - 1} />
@@ -52,30 +57,33 @@ export default async function AdminHomePage() {
 
               {folder.thumbnail_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={folder.thumbnail_url} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+                <img src={folder.thumbnail_url} alt="" className="rounded-tds-lg h-16 w-16 shrink-0 object-cover" />
               ) : (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-lg font-black text-zinc-300 dark:bg-zinc-800 dark:text-zinc-600">
+                <div className="rounded-tds-lg bg-brand-weak text-brand flex h-16 w-16 shrink-0 items-center justify-center text-lg font-black">
                   {folder.name.slice(0, 2)}
                 </div>
               )}
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="truncate font-bold">{folder.name}</h2>
+                  <h2 className="text-ink truncate font-bold">{folder.name}</h2>
                   {folder.published ? (
-                    <span className="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-                      공개
-                    </span>
+                    <span className="badge badge-live">공개</span>
                   ) : (
-                    <span className="badge bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">비공개</span>
+                    <span className="badge">비공개</span>
                   )}
+                  <span
+                    className="border-line inline-flex h-5 items-center gap-1.5 rounded-full border pr-2 pl-1 font-mono text-[10px] font-semibold tracking-tight uppercase"
+                    title="이 폴더의 테마 컬러"
+                  >
+                    <span className="bg-brand h-3 w-3 rounded-full" />
+                    {folder.theme_color}
+                  </span>
                 </div>
-                <p className="mt-0.5 truncate text-xs text-zinc-400 dark:text-zinc-500">
+                <p className="text-ink-3 mt-1 truncate text-xs font-medium">
                   /{folder.slug} · 글 {folder.post_count}개 · 링크 {folder.links.length}개
                 </p>
-                {folder.description && (
-                  <p className="mt-1 truncate text-sm text-zinc-500 dark:text-zinc-400">{folder.description}</p>
-                )}
+                {folder.description && <p className="text-ink-2 mt-1 truncate text-sm">{folder.description}</p>}
               </div>
 
               <div className="flex shrink-0 flex-wrap gap-2">
@@ -112,7 +120,7 @@ function ReorderButton({ id, direction, disabled }: { id: string; direction: "up
         type="submit"
         disabled={disabled}
         aria-label={direction === "up" ? "위로" : "아래로"}
-        className="h-6 w-6 cursor-pointer rounded-md border border-zinc-200 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-25 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className="icon-btn h-6 w-6 rounded-md text-xs"
       >
         {direction === "up" ? "↑" : "↓"}
       </button>

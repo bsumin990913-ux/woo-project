@@ -31,11 +31,18 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
   return (
     <>
       <div className="mb-7">
-        <Link href="/admin" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+        <Link href="/admin" className="chip">
           ← 폴더 목록
         </Link>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-extrabold tracking-tight">{folder.name}</h1>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="t-h2 text-ink flex items-center gap-2.5">
+            <span
+              className="h-5 w-5 shrink-0 rounded-full"
+              style={{ backgroundColor: folder.theme_color, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.08)" }}
+              title={`테마 컬러 ${folder.theme_color}`}
+            />
+            {folder.name}
+          </h1>
           <Link href={`/${encodeURIComponent(folder.slug)}`} target="_blank" className="btn-ghost btn-sm">
             공개 페이지 보기 ↗
           </Link>
@@ -43,9 +50,7 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
       </div>
 
       {saved && (
-        <p className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
-          저장했습니다.
-        </p>
+        <p className="badge badge-live rounded-tds-lg mb-6 h-auto w-full px-4 py-3.5 text-sm">저장했습니다.</p>
       )}
 
       <FolderForm folder={folder} />
@@ -53,10 +58,8 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
       <section className="mt-12">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight">글 {posts.length}개</h2>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              이 폴더의 공개 페이지에 순서대로 나열됩니다.
-            </p>
+            <h2 className="t-h3 text-ink">글 {posts.length}개</h2>
+            <p className="t-sub mt-1 text-[14px]">이 폴더의 공개 페이지에 순서대로 나열됩니다.</p>
           </div>
           <Link href={`/admin/folders/${folder.id}/posts/new`} className="btn-primary btn-sm">
             + 새 글
@@ -65,7 +68,7 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
 
         {posts.length === 0 ? (
           <div className="card p-10 text-center">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">아직 글이 없습니다.</p>
+            <p className="t-sub">아직 글이 없습니다.</p>
             <Link href={`/admin/folders/${folder.id}/posts/new`} className="btn-primary mt-4">
               첫 글 쓰기
             </Link>
@@ -91,19 +94,17 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
 
                 {post.images[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.images[0]} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+                  <img src={post.images[0]} alt="" className="rounded-tds-lg h-14 w-14 shrink-0 object-cover" />
                 ) : (
-                  <div className="h-14 w-14 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800" />
+                  <div className="rounded-tds-lg bg-surface-2 h-14 w-14 shrink-0" />
                 )}
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="truncate font-semibold">{post.title}</h3>
-                    {!post.published && (
-                      <span className="badge bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">비공개</span>
-                    )}
+                    <h3 className="text-ink truncate font-bold">{post.title}</h3>
+                    {!post.published && <span className="badge">비공개</span>}
                   </div>
-                  <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                  <p className="text-ink-3 mt-1 text-xs font-medium">
                     사진 {post.images.length}장 · 링크 {post.links.length}개
                   </p>
                 </div>
@@ -149,7 +150,7 @@ function ReorderButton({
         type="submit"
         disabled={disabled}
         aria-label={direction === "up" ? "위로" : "아래로"}
-        className="h-6 w-6 cursor-pointer rounded-md border border-zinc-200 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-25 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className="icon-btn h-6 w-6 rounded-md text-xs"
       >
         {direction === "up" ? "↑" : "↓"}
       </button>
