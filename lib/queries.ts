@@ -3,32 +3,77 @@ import "server-only";
 import { cache } from "react";
 
 import { supabasePublic, supabaseAdmin } from "@/lib/supabase";
-import { normalizeFolder, normalizePost, type Folder, type FolderWithCount, type Post } from "@/lib/types";
+import {
+  normalizeFolder,
+  normalizePost,
+  type Folder,
+  type FolderWithCount,
+  type Post,
+  type SiteSettings,
+} from "@/lib/types";
 
 type Row = Record<string, unknown>;
 
-function countOf(row: Row): number {
-  const embedded = row.posts;
-  if (Array.isArray(embedded) && embedded.length > 0) {
-    const first = embedded[0] as Record<string, unknown>;
-    return Number(first?.count ?? 0);
-  }
-  return 0;
+/** 임베드된 posts(views) 배열에서 글 개수와 조회수 합을 뽑는다.
+ *  방문자용 클라이언트에서는 RLS 덕분에 공개된 글만 들어온다. */
+function rollup(row: Row): { post_count: number; post_views: number } {
+  const embedded = Array.isArray(row.posts) ? (row.posts as Row[]) : [];
+  return {
+    post_count: embedded.length,
+    post_views: embedded.reduce((sum, post) => sum + Number(post?.views ?? 0), 0),
+  };
+}
+
+/** supabase/schema.sql 을 아직 다시 실행하지 않아 views 컬럼이 없는 상태인지 */
+function isMissingViews(error: { message?: string } | null): boolean {
+  return Boolean(error?.message && /views/.test(error.message));
+}
+
+function withRollup(row: Row): FolderWithCount {
+  const folder = normalizeFolder(row);
+  const { post_count, post_views } = rollup(row);
+  return { ...folder, post_count, total_views: folder.views + post_views };
 }
 
 /* ── 방문자용 (published 만 보임 · RLS 적용) ───────────────── */
 
 export async function listPublicFolders(): Promise<FolderWithCount[]> {
-  const { data, error } = await supabasePublic()
+  // views 컬럼을 아직 안 만들었어도(스키마 재실행 전) 목록은 보여야 한다
+  let { data, error } = await supabasePublic()
     .from("folders")
-    .select("*, posts(count)")
+    .select("*, posts(views)")
     .eq("published", true)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
+  if (error && isMissingViews(error)) {
+    ({ data, error } = await supabasePublic()
+      .from("folders")
+      .select("*, posts(id)")
+      .eq("published", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }));
+  }
+
   if (error) throw error;
-  return (data ?? []).map((row) => ({ ...normalizeFolder(row as Row), post_count: countOf(row as Row) }));
+  return (data ?? []).map((row) => withRollup(row as Row));
 }
+
+/** 사이트 전역 설정. 테이블/행이 없으면 "공개" 로 본다. */
+export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
+  try {
+    const { data, error } = await supabasePublic()
+      .from("settings")
+      .select("index_published")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (error || !data) return { index_published: true };
+    return { index_published: (data as Row).index_published !== false };
+  } catch {
+    return { index_published: true };
+  }
+});
 
 /**
  * 한 번의 요청 안에서 generateMetadata · generateViewport · 페이지 본문이
@@ -107,14 +152,38 @@ export async function listPublicPostParams(): Promise<{ slug: string; postId: st
 /* ── 관리자용 (비공개 포함 전부 보임) ──────────────────────── */
 
 export async function listAllFolders(): Promise<FolderWithCount[]> {
-  const { data, error } = await supabaseAdmin()
+  let { data, error } = await supabaseAdmin()
     .from("folders")
-    .select("*, posts(count)")
+    .select("*, posts(views)")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
+  if (error && isMissingViews(error)) {
+    ({ data, error } = await supabaseAdmin()
+      .from("folders")
+      .select("*, posts(id)")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }));
+  }
+
   if (error) throw error;
-  return (data ?? []).map((row) => ({ ...normalizeFolder(row as Row), post_count: countOf(row as Row) }));
+  return (data ?? []).map((row) => withRollup(row as Row));
+}
+
+/**
+ * 관리자용 설정 조회.
+ * ready=false 면 settings 테이블이 아직 없다는 뜻이라, 화면에서 안내를 띄운다.
+ */
+export async function getSettingsForAdmin(): Promise<SiteSettings & { ready: boolean }> {
+  const { data, error } = await supabaseAdmin()
+    .from("settings")
+    .select("index_published")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (error) return { index_published: true, ready: false };
+  if (!data) return { index_published: true, ready: true };
+  return { index_published: (data as Row).index_published !== false, ready: true };
 }
 
 export async function getFolder(id: string): Promise<Folder | null> {

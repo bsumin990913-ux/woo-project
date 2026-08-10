@@ -1,26 +1,29 @@
-import { ArrowDown, ArrowUp, ExternalLink, Plus, Settings2, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Eye, ExternalLink, FileText, Globe, Lock, Plus, Settings2, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import ConfirmButton from "@/components/ConfirmButton";
 import SetupNotice from "@/components/SetupNotice";
-import { deleteFolderAction, moveFolderAction } from "@/lib/actions";
-import { listAllFolders } from "@/lib/queries";
+import { deleteFolderAction, moveFolderAction, setIndexPublishedAction } from "@/lib/actions";
+import { getSettingsForAdmin, listAllFolders } from "@/lib/queries";
 import { brandStyle } from "@/lib/theme";
-import type { FolderWithCount } from "@/lib/types";
+import type { FolderWithCount, SiteSettings } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomePage() {
   let folders: FolderWithCount[] = [];
+  let settings: SiteSettings & { ready: boolean } = { index_published: true, ready: false };
   let failure: string | null = null;
 
   try {
-    folders = await listAllFolders();
+    [folders, settings] = await Promise.all([listAllFolders(), getSettingsForAdmin()]);
   } catch (error) {
     failure = error instanceof Error ? error.message : String(error);
   }
 
   if (failure) return <SetupNotice detail={failure} />;
+
+  const totalViews = folders.reduce((sum, folder) => sum + folder.total_views, 0);
 
   return (
     <>
@@ -35,6 +38,62 @@ export default async function AdminHomePage() {
           <Plus className="h-4 w-4" />새 폴더
         </Link>
       </div>
+
+      {/* 첫 화면(전체 목록) 공개 여부 */}
+      <section className="card mb-6 flex flex-wrap items-center gap-4 p-5">
+        <span
+          className={`rounded-tds-lg flex h-11 w-11 shrink-0 items-center justify-center ${
+            settings.index_published ? "bg-brand-weak text-brand-weak-fg" : "bg-surface-2 text-ink-3"
+          }`}
+        >
+          {settings.index_published ? <Globe className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-ink text-[15px] font-bold">첫 화면 전체 목록</h2>
+            {settings.index_published ? (
+              <span className="badge badge-live">공개</span>
+            ) : (
+              <span className="badge">비공개</span>
+            )}
+          </div>
+          <p className="hint mt-1">
+            {settings.index_published
+              ? "주소만 알면 누구나 모든 폴더 목록을 볼 수 있어요."
+              : "첫 화면은 숨겨져 있어요. 각 폴더 주소(/슬러그)를 직접 아는 사람만 들어올 수 있습니다."}
+          </p>
+        </div>
+
+        {settings.ready ? (
+          <form action={setIndexPublishedAction} className="shrink-0">
+            <input type="hidden" name="value" value={settings.index_published ? "false" : "true"} />
+            <button type="submit" className={settings.index_published ? "btn-ghost btn-sm" : "btn-primary btn-sm"}>
+              {settings.index_published ? (
+                <>
+                  <Lock className="h-3.5 w-3.5" />
+                  비공개로
+                </>
+              ) : (
+                <>
+                  <Globe className="h-3.5 w-3.5" />
+                  공개로
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <p className="bg-surface-2 text-ink-2 rounded-tds-md shrink-0 px-3 py-2 text-xs font-medium">
+            supabase/schema.sql 을 다시 실행하면 켤 수 있어요
+          </p>
+        )}
+      </section>
+
+      {folders.length > 0 && (
+        <p className="t-caption mb-3 px-1">
+          전체 조회수 <span className="text-ink font-bold">{totalViews.toLocaleString("ko-KR")}</span>
+        </p>
+      )}
 
       {folders.length === 0 ? (
         <div className="card p-14 text-center">
@@ -81,8 +140,16 @@ export default async function AdminHomePage() {
                     {folder.theme_color}
                   </span>
                 </div>
-                <p className="text-ink-3 mt-1 truncate text-xs font-medium">
-                  /{folder.slug} · 글 {folder.post_count}개 · 링크 {folder.links.length}개
+                <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
+                  <span className="truncate">/{folder.slug}</span>
+                  <span className="inline-flex items-center gap-1">
+                    <FileText className="h-3.5 w-3.5" strokeWidth={2} />
+                    {folder.post_count}
+                  </span>
+                  <span className="inline-flex items-center gap-1" title="폴더 + 글 전체 조회수">
+                    <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+                    {folder.total_views.toLocaleString("ko-KR")}
+                  </span>
                 </p>
                 {folder.description && <p className="text-ink-2 mt-1 truncate text-sm">{folder.description}</p>}
               </div>

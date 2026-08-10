@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ChevronLeft, ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, ExternalLink, Eye, Images, Link2, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -107,8 +107,19 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
                     <h3 className="text-ink truncate font-bold">{post.title}</h3>
                     {!post.published && <span className="badge">비공개</span>}
                   </div>
-                  <p className="text-ink-3 mt-1 text-xs font-medium">
-                    사진 {post.images.length}장 · 링크 {post.links.length}개
+                  <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
+                    <span className="inline-flex items-center gap-1">
+                      <Images className="h-3.5 w-3.5" strokeWidth={2} />
+                      {post.images.length}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Link2 className="h-3.5 w-3.5" strokeWidth={2} />
+                      {post.links.length}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+                      {post.views.toLocaleString("ko-KR")}
+                    </span>
                   </p>
                 </div>
 

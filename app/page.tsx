@@ -1,16 +1,22 @@
-import { Layers } from "lucide-react";
+import { Eye, FileText, Layers } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import LinkButtons from "@/components/LinkButtons";
 import SetupNotice from "@/components/SetupNotice";
 import ThemeToggle from "@/components/ThemeToggle";
-import { listPublicFolders } from "@/lib/queries";
+import { getSiteSettings, listPublicFolders } from "@/lib/queries";
 import { brandStyle } from "@/lib/theme";
 import type { FolderWithCount } from "@/lib/types";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
+  // 관리자가 전체 목록을 비공개로 돌리면 첫 화면 자체를 감춘다.
+  // 각 폴더의 주소(/슬러그)는 그대로 열린다.
+  const settings = await getSiteSettings();
+  if (!settings.index_published) notFound();
+
   let folders: FolderWithCount[] = [];
   let failure: string | null = null;
 
@@ -21,34 +27,26 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen">
-      <div className="brand-hero">
-        <div className="mx-auto max-w-5xl px-5 pt-6 pb-14 sm:pt-8 sm:pb-20">
-          <div className="mb-12 flex items-center justify-between sm:mb-16">
-            <span className="text-ink flex items-center gap-2 text-[15px] font-extrabold tracking-tight">
-              <span className="bg-brand text-on-brand flex h-7 w-7 items-center justify-center rounded-[9px]">
-                <Layers className="h-4 w-4" />
-              </span>
-              Works
+    <main className="bg-canvas min-h-screen">
+      <div className="mx-auto max-w-5xl px-5 pt-5 pb-16">
+        <header className="mb-9 flex items-center justify-between">
+          <span className="text-ink flex items-center gap-2 text-[15px] font-extrabold tracking-tight">
+            <span className="bg-brand text-on-brand flex h-7 w-7 items-center justify-center rounded-[9px]">
+              <Layers className="h-4 w-4" />
             </span>
-            <ThemeToggle />
-          </div>
+            Works
+          </span>
+          <ThemeToggle />
+        </header>
 
-          <div className="rise max-w-xl">
-            <p className="badge badge-brand mb-4">{folders.length}개의 프로젝트</p>
-            <h1 className="t-h1 text-ink text-balance">
-              지금 만들고 있는 것들을
-              <br />
-              한곳에 모았습니다.
-            </h1>
-            <p className="t-sub mt-4">
-              폴더 하나가 프로젝트 하나예요. 눌러서 링크와 작업 기록을 확인해 보세요.
-            </p>
-          </div>
+        <div className="rise mb-8">
+          <h1 className="t-h1 text-ink text-balance">
+            지금 만들고 있는 것들을
+            <br />한 곳에 모았습니다.
+          </h1>
+          <p className="t-sub mt-3">폴더 하나가 프로젝트 하나예요. 눌러서 링크와 작업 기록을 확인해 보세요.</p>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-5 pb-20">
         {failure ? (
           <SetupNotice detail={failure} />
         ) : folders.length === 0 ? (
@@ -64,9 +62,9 @@ export default async function HomePage() {
               <li
                 key={folder.id}
                 className="theme rise"
-                style={{ ...brandStyle(folder.theme_color), animationDelay: `${Math.min(index, 9) * 55}ms` }}
+                style={{ ...brandStyle(folder.theme_color), animationDelay: `${Math.min(index, 9) * 50}ms` }}
               >
-                <article className="card group hover:border-brand-line flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-card">
+                <article className="card hover:shadow-card group flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1">
                   <Link href={`/${encodeURIComponent(folder.slug)}`} className="block">
                     <div className="bg-brand-weak relative aspect-[16/10] w-full overflow-hidden">
                       {folder.thumbnail_url ? (
@@ -84,7 +82,7 @@ export default async function HomePage() {
                       )}
                     </div>
 
-                    <div className="space-y-1.5 px-5 pt-5">
+                    <div className="space-y-1.5 px-5 pt-4">
                       <h2 className="t-h3 text-ink truncate">{folder.name}</h2>
                       {folder.description && (
                         <p className="text-ink-2 line-clamp-2 text-[14px] leading-6">{folder.description}</p>
@@ -92,17 +90,21 @@ export default async function HomePage() {
                     </div>
                   </Link>
 
-                  <div className="mt-auto flex items-center gap-2 px-5 pt-4 pb-5">
-                    <span className="badge badge-brand">글 {folder.post_count}</span>
-                    {folder.links.length > 0 && <span className="badge">링크 {folder.links.length}</span>}
-                    <span className="text-ink-3 group-hover:text-brand ml-auto text-[13px] font-semibold transition-colors">
-                      /{folder.slug}
+                  <div className="text-ink-3 mt-auto flex items-center gap-3 px-5 pt-3.5 pb-4 text-[12px] font-semibold">
+                    <span className="inline-flex items-center gap-1">
+                      <FileText className="h-3.5 w-3.5" strokeWidth={2} />
+                      {folder.post_count}
                     </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+                      {folder.total_views.toLocaleString("ko-KR")}
+                    </span>
+                    <span className="group-hover:text-brand ml-auto transition-colors">/{folder.slug}</span>
                   </div>
 
                   {folder.links.length > 0 && (
                     <div className="border-line border-t px-5 py-3.5">
-                      <LinkButtons links={folder.links.slice(0, 4)} compact />
+                      <LinkButtons links={folder.links.slice(0, 4)} variant="chips" />
                     </div>
                   )}
                 </article>
@@ -111,7 +113,7 @@ export default async function HomePage() {
           </ul>
         )}
 
-        <footer className="border-line mt-16 border-t pt-6 text-center">
+        <footer className="border-line mt-14 border-t pt-6 text-center">
           <Link href="/admin" className="text-ink-3 hover:text-ink text-xs font-medium transition-colors">
             관리자
           </Link>

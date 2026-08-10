@@ -83,6 +83,22 @@ export async function logoutAction(): Promise<void> {
   redirect("/login");
 }
 
+/* ── 사이트 설정 ───────────────────────────────────────────── */
+
+/** 첫 화면(/)의 전체 목록 공개 여부를 바꾼다. */
+export async function setIndexPublishedAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const next = str(formData, "value") === "true";
+
+  await supabaseAdmin()
+    .from("settings")
+    .upsert({ id: 1, index_published: next }, { onConflict: "id" });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  redirect("/admin");
+}
+
 /* ── 폴더 ──────────────────────────────────────────────────── */
 
 export async function saveFolderAction(_prev: FormState, formData: FormData): Promise<FormState> {

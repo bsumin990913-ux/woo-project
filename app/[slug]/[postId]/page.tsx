@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Eye, Images, Link2 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import Gallery from "@/components/Gallery";
 import LinkButtons from "@/components/LinkButtons";
 import ThemeToggle from "@/components/ThemeToggle";
+import ViewCounter from "@/components/ViewCounter";
 import { getPublicFolderBySlug, getPublicPost, listPublicPostParams } from "@/lib/queries";
 import { brandStyle } from "@/lib/theme";
 
@@ -57,6 +58,8 @@ export default async function PostPage({ params }: Params) {
 
   return (
     <main className="theme bg-canvas min-h-screen" style={brandStyle(folder.theme_color)}>
+      <ViewCounter kind="post" id={post.id} />
+
       <div className="brand-glow">
         <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
           <div className="mb-9 flex items-center justify-between gap-3">
@@ -69,11 +72,29 @@ export default async function PostPage({ params }: Params) {
 
           <header className="rise">
             <h1 className="t-h2 text-ink text-balance">{post.title}</h1>
-            {publishedAt && !Number.isNaN(publishedAt.getTime()) && (
-              <time className="t-caption mt-2.5 block" dateTime={post.created_at}>
-                {publishedAt.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
-              </time>
-            )}
+            <div className="t-caption mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {publishedAt && !Number.isNaN(publishedAt.getTime()) && (
+                <time dateTime={post.created_at}>
+                  {publishedAt.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
+                </time>
+              )}
+              {post.images.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <Images className="h-3.5 w-3.5" strokeWidth={2} />
+                  {post.images.length}
+                </span>
+              )}
+              {post.links.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <Link2 className="h-3.5 w-3.5" strokeWidth={2} />
+                  {post.links.length}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1">
+                <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+                {post.views.toLocaleString("ko-KR")}
+              </span>
+            </div>
           </header>
         </div>
       </div>
@@ -93,8 +114,8 @@ export default async function PostPage({ params }: Params) {
 
         {post.links.length > 0 && (
           <section>
-            <h2 className="t-eyebrow mb-4">Links</h2>
-            <LinkButtons links={post.links} />
+            <h2 className="t-eyebrow mb-3">Links</h2>
+            <LinkButtons links={post.links} variant={post.links.length === 1 ? "row" : "grid"} />
           </section>
         )}
 

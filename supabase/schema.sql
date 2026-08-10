@@ -17,6 +17,7 @@ create table if not exists public.folders (
   links         jsonb not null default '[]'::jsonb, -- [{label,url}]
   theme_color   text not null default '#3182f6', -- 폴더별 핵심 컬러 (#rrggbb)
   published     boolean not null default true, -- 비공개면 목록/페이지에서 숨김
+  views         bigint not null default 0,     -- 이 폴더 페이지 조회수
   sort_order    integer not null default 0,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
@@ -31,15 +32,45 @@ create table if not exists public.posts (
   images      jsonb not null default '[]'::jsonb,   -- ["https://...", ...]
   body        text not null default '',             -- 소개
   published   boolean not null default true,
+  views       bigint not null default 0,            -- 이 글 조회수
   sort_order  integer not null default 0,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
 
+-- ── 사이트 전역 설정(항상 한 줄만 존재) ─────────────────────
+create table if not exists public.settings (
+  id              smallint primary key default 1,
+  index_published boolean not null default true, -- 첫 화면(/)의 전체 목록 공개 여부
+  updated_at      timestamptz not null default now(),
+  constraint settings_single_row check (id = 1)
+);
+
+insert into public.settings (id) values (1) on conflict (id) do nothing;
+
 -- ── 기존에 만들어 둔 테이블을 위한 추가 컬럼 ────────────────
---   (이미 folders 테이블을 만든 뒤라면 이 줄이 테마 컬러를 붙여 줍니다)
+--   (이미 테이블을 만든 뒤라면 이 줄들이 새 컬럼을 붙여 줍니다)
 alter table public.folders
   add column if not exists theme_color text not null default '#3182f6';
+alter table public.folders
+  add column if not exists views bigint not null default 0;
+alter table public.posts
+  add column if not exists views bigint not null default 0;
+
+-- ── 조회수 +1 (동시에 여러 명이 봐도 안전하게) ──────────────
+create or replace function public.increment_view(p_kind text, p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_kind = 'folder' then
+    update public.folders set views = views + 1 where id = p_id and published = true;
+  elsif p_kind = 'post' then
+    update public.posts set views = views + 1 where id = p_id and published = true;
+  end if;
+end $$;
 
 create index if not exists posts_folder_id_idx on public.posts (folder_id);
 create index if not exists folders_sort_idx    on public.folders (sort_order, created_at desc);
@@ -64,8 +95,15 @@ create trigger posts_touch before update on public.posts
 -- ── RLS: 방문자(anon)는 "공개된 것만 읽기" 만 가능 ──────────
 --   쓰기/수정/삭제는 service_role 키(서버 전용)만 가능하며,
 --   service_role 은 RLS 를 우회하므로 별도 정책이 필요 없습니다.
-alter table public.folders enable row level security;
-alter table public.posts   enable row level security;
+alter table public.folders  enable row level security;
+alter table public.posts    enable row level security;
+alter table public.settings enable row level security;
+
+drop policy if exists "public read settings" on public.settings;
+create policy "public read settings"
+  on public.settings for select
+  to anon, authenticated
+  using (true);
 
 drop policy if exists "public read published folders" on public.folders;
 create policy "public read published folders"

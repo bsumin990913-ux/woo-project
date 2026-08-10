@@ -2,29 +2,26 @@
 export default function FolderLoading() {
   return (
     <main className="bg-canvas min-h-screen">
-      <div className="brand-hero">
-        <div className="mx-auto max-w-2xl px-5 pt-5 pb-16">
-          <div className="mb-10 flex items-center justify-between">
-            <Bone className="h-8 w-24 rounded-full" />
-            <Bone className="h-9 w-9 rounded-full" />
-          </div>
-          <div className="flex flex-col items-center">
-            <Bone className="rounded-sheet mb-5 h-24 w-24" />
-            <Bone className="h-8 w-48" />
-            <Bone className="mt-3 h-5 w-64" />
-            <Bone className="mt-5 h-6 w-28 rounded-full" />
-          </div>
+      <div className="mx-auto max-w-lg px-5 pt-4 pb-10">
+        <div className="mb-6 flex justify-end">
+          <Bone className="h-9 w-9 rounded-full" />
         </div>
+
+        <div className="flex flex-col items-center">
+          <Bone className="mb-4 h-[104px] w-[104px] rounded-full" />
+          <Bone className="h-8 w-44" />
+          <Bone className="mt-2.5 h-4 w-64" />
+        </div>
+
+        <Bone className="mt-6 h-[74px] w-full rounded-[18px]" />
       </div>
 
-      <div className="sheet relative -mt-8">
-        <div className="mx-auto max-w-2xl px-5 pt-4 pb-20">
-          <div className="sheet-grabber mb-8" />
-          <div className="space-y-2.5">
-            {[0, 1, 2].map((i) => (
-              <Bone key={i} className="rounded-tds-xl h-[74px] w-full" />
-            ))}
-          </div>
+      <div className="mx-auto max-w-lg space-y-2 px-5 pb-16">
+        <Bone className="mb-3 h-3.5 w-12" />
+        <div className="grid grid-cols-2 gap-2">
+          {[0, 1, 2, 3].map((i) => (
+            <Bone key={i} className="rounded-tds-lg h-[58px] w-full" />
+          ))}
         </div>
       </div>
     </main>
