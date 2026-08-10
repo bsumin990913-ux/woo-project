@@ -40,17 +40,27 @@ export default async function AdminHomePage() {
       </div>
 
       {/* 첫 화면(전체 목록) 공개 여부 */}
-      <section className="card mb-6 flex flex-wrap items-center gap-4 p-5">
-        <span
-          className={`rounded-tds-lg flex h-11 w-11 shrink-0 items-center justify-center ${
-            settings.index_published ? "bg-brand-weak text-brand-weak-fg" : "bg-surface-2 text-ink-3"
-          }`}
-        >
-          {settings.index_published ? <Globe className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-        </span>
+      <section className="card mb-6 flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <span
+            className={`rounded-tds-lg flex h-11 w-11 shrink-0 items-center justify-center ${
+              settings.index_published ? "bg-brand-weak text-brand-weak-fg" : "bg-surface-2 text-ink-3"
+            }`}
+          >
+            {settings.index_published ? <Globe className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+          </span>
+          <div className="flex sm:hidden flex-wrap items-center gap-2">
+            <h2 className="text-ink text-[15px] font-bold">첫 화면 전체 목록</h2>
+            {settings.index_published ? (
+              <span className="badge badge-live">공개</span>
+            ) : (
+              <span className="badge">비공개</span>
+            )}
+          </div>
+        </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden sm:flex flex-wrap items-center gap-2">
             <h2 className="text-ink text-[15px] font-bold">첫 화면 전체 목록</h2>
             {settings.index_published ? (
               <span className="badge badge-live">공개</span>

@@ -85,42 +85,44 @@ function SortablePostItem({ post, folderId }: { post: Post; folderId: string }) 
     <li
       ref={setNodeRef}
       style={style}
-      className={`card flex flex-col gap-4 p-4 sm:flex-row sm:items-center ${isDragging ? "shadow-float" : ""}`}
+      className={`card p-4 sm:flex sm:flex-row sm:items-center sm:gap-4 ${isDragging ? "shadow-float" : ""}`}
     >
-      <div
-        className="flex shrink-0 cursor-grab items-center justify-center p-1 text-ink-3 hover:text-ink active:cursor-grabbing"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-5 w-5" />
-      </div>
-
-      {post.images[0] ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.images[0]} alt="" className="rounded-tds-lg h-14 w-14 shrink-0 object-cover" />
-      ) : (
-        <div className="rounded-tds-lg bg-surface-2 h-14 w-14 shrink-0" />
-      )}
-
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-ink truncate font-bold">{post.title}</h3>
-          {!post.published && <span className="badge">비공개</span>}
+      <div className="flex flex-row items-center gap-3 sm:gap-4 flex-1 min-w-0 mb-4 sm:mb-0">
+        <div
+          className="flex shrink-0 cursor-grab items-center justify-center p-1 text-ink-3 hover:text-ink active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-5 w-5" />
         </div>
-        <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
-          <span className="inline-flex items-center gap-1">
-            <Images className="h-3.5 w-3.5" strokeWidth={2} />
-            {post.images.length}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Link2 className="h-3.5 w-3.5" strokeWidth={2} />
-            {post.links.length}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Eye className="h-3.5 w-3.5" strokeWidth={2} />
-            {post.views.toLocaleString("ko-KR")}
-          </span>
-        </p>
+
+        {post.images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={post.images[0]} alt="" className="rounded-tds-lg h-14 w-14 shrink-0 object-cover" />
+        ) : (
+          <div className="rounded-tds-lg bg-surface-2 h-14 w-14 shrink-0" />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-ink truncate font-bold">{post.title}</h3>
+            {!post.published && <span className="badge">비공개</span>}
+          </div>
+          <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
+            <span className="inline-flex items-center gap-1">
+              <Images className="h-3.5 w-3.5" strokeWidth={2} />
+              {post.images.length}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Link2 className="h-3.5 w-3.5" strokeWidth={2} />
+              {post.links.length}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+              {post.views.toLocaleString("ko-KR")}
+            </span>
+          </p>
+        </div>
       </div>
 
       <div className="flex shrink-0 gap-2">

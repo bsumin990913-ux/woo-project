@@ -21,8 +21,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen">
       <header className="border-line bg-canvas/80 sticky top-0 z-30 border-b backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
-          <Link href="/admin" className="text-ink flex items-center gap-2 text-[15px] font-extrabold tracking-tight">
-            <span className="bg-brand text-on-brand flex h-7 w-7 items-center justify-center rounded-[9px]">
+          <Link href="/admin" className="text-ink flex items-center gap-2 text-[15px] font-extrabold tracking-tight whitespace-nowrap">
+            <span className="bg-brand text-on-brand flex h-7 w-7 items-center justify-center rounded-[9px] shrink-0">
               <LayoutDashboard className="h-4 w-4" />
             </span>
             대시보드

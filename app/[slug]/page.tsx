@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import LinkButtons from "@/components/LinkButtons";
 import ThemeToggle from "@/components/ThemeToggle";
 import ViewCounter from "@/components/ViewCounter";
+import ShareButton from "@/components/ShareButton";
+import ScrollToTop from "@/components/ScrollToTop";
 import { getPublicFolderBySlug, listPublicPosts, listPublicSlugs } from "@/lib/queries";
 import { brandStyle } from "@/lib/theme";
 
@@ -65,7 +67,8 @@ export default async function FolderPage({ params }: Params) {
 
       <div className="brand-hero">
         <div className="mx-auto max-w-lg px-5 pt-4 pb-10">
-          <div className="mb-6 flex justify-end">
+          <div className="mb-6 flex justify-end gap-2">
+            <ShareButton title={folder.name} />
             <ThemeToggle />
           </div>
 
@@ -161,6 +164,7 @@ export default async function FolderPage({ params }: Params) {
           <p className="t-sub py-16 text-center">아직 등록된 내용이 없습니다.</p>
         )}
       </div>
+      <ScrollToTop />
     </main>
   );
 }

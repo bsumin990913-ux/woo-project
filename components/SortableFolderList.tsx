@@ -91,53 +91,55 @@ function SortableFolderItem({ folder }: { folder: FolderWithCount }) {
     <li
       ref={setNodeRef}
       style={style}
-      className={`theme card flex flex-col gap-4 p-4 sm:flex-row sm:items-center ${isDragging ? "shadow-float" : ""}`}
+      className={`theme card p-4 sm:flex sm:flex-row sm:items-center sm:gap-4 ${isDragging ? "shadow-float" : ""}`}
     >
-      <div
-        className="flex shrink-0 cursor-grab items-center justify-center p-1 text-ink-3 hover:text-ink active:cursor-grabbing"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-5 w-5" />
-      </div>
-
-      {folder.thumbnail_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={folder.thumbnail_url} alt="" className="rounded-tds-lg h-16 w-16 shrink-0 object-cover" />
-      ) : (
-        <div className="rounded-tds-lg bg-brand-weak text-brand flex h-16 w-16 shrink-0 items-center justify-center text-lg font-black">
-          {folder.name.slice(0, 2)}
+      <div className="flex flex-row items-center gap-3 sm:gap-4 flex-1 min-w-0 mb-4 sm:mb-0">
+        <div
+          className="flex shrink-0 cursor-grab items-center justify-center p-1 text-ink-3 hover:text-ink active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-5 w-5" />
         </div>
-      )}
 
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-ink truncate font-bold">{folder.name}</h2>
-          {folder.published ? (
-            <span className="badge badge-live">공개</span>
-          ) : (
-            <span className="badge">비공개</span>
-          )}
-          <span
-            className="border-line inline-flex h-5 items-center gap-1.5 rounded-full border pr-2 pl-1 font-mono text-[10px] font-semibold tracking-tight uppercase"
-            title="이 폴더의 테마 컬러"
-          >
-            <span className="bg-brand h-3 w-3 rounded-full" />
-            {folder.theme_color}
-          </span>
+        {folder.thumbnail_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={folder.thumbnail_url} alt="" className="rounded-tds-lg h-16 w-16 shrink-0 object-cover" />
+        ) : (
+          <div className="rounded-tds-lg bg-brand-weak text-brand flex h-16 w-16 shrink-0 items-center justify-center text-lg font-black">
+            {folder.name.slice(0, 2)}
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-ink truncate font-bold">{folder.name}</h2>
+            {folder.published ? (
+              <span className="badge badge-live">공개</span>
+            ) : (
+              <span className="badge">비공개</span>
+            )}
+            <span
+              className="border-line inline-flex h-5 items-center gap-1.5 rounded-full border pr-2 pl-1 font-mono text-[10px] font-semibold tracking-tight uppercase"
+              title="이 폴더의 테마 컬러"
+            >
+              <span className="bg-brand h-3 w-3 rounded-full" />
+              {folder.theme_color}
+            </span>
+          </div>
+          <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
+            <span className="truncate">/{folder.slug}</span>
+            <span className="inline-flex items-center gap-1">
+              <FileText className="h-3.5 w-3.5" strokeWidth={2} />
+              {folder.post_count}
+            </span>
+            <span className="inline-flex items-center gap-1" title="폴더 + 글 전체 조회수">
+              <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+              {folder.total_views.toLocaleString("ko-KR")}
+            </span>
+          </p>
+          {folder.description && <p className="text-ink-2 mt-1 truncate text-sm">{folder.description}</p>}
         </div>
-        <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
-          <span className="truncate">/{folder.slug}</span>
-          <span className="inline-flex items-center gap-1">
-            <FileText className="h-3.5 w-3.5" strokeWidth={2} />
-            {folder.post_count}
-          </span>
-          <span className="inline-flex items-center gap-1" title="폴더 + 글 전체 조회수">
-            <Eye className="h-3.5 w-3.5" strokeWidth={2} />
-            {folder.total_views.toLocaleString("ko-KR")}
-          </span>
-        </p>
-        {folder.description && <p className="text-ink-2 mt-1 truncate text-sm">{folder.description}</p>}
       </div>
 
       <div className="flex shrink-0 flex-wrap gap-2">
