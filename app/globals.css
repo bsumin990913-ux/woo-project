@@ -131,7 +131,7 @@ html {
 }
 
 body {
-  background: var(--canvas);
+  background: color-mix(in srgb, var(--brand, var(--canvas)) 2%, var(--canvas));
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 16px;
@@ -259,14 +259,15 @@ body {
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   align-items: center;
-  background: var(--brand);
-  color: var(--on-brand);
+  background: var(--brand-tint);
+  color: var(--brand-hover);
+  border: 1px solid var(--brand-line);
   border-radius: 18px;
   padding: 16px 8px;
 }
 
 .stat-block > * + * {
-  border-left: 1px solid color-mix(in srgb, var(--on-brand) 22%, transparent);
+  border-left: 1px solid var(--brand-ring);
 }
 
 .stat-cell {
@@ -592,18 +593,18 @@ textarea.input {
   background: var(--surface);
   box-shadow: var(--shadow-1);
   transition:
-    transform 0.14s ease,
-    box-shadow 0.16s ease,
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.16s ease;
 }
 
 .link-tile:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-2);
 }
 
 .link-tile:active {
-  transform: scale(0.985);
+  transform: scale(0.985) translateY(-2px);
   box-shadow: var(--shadow-1);
 }
 
@@ -623,17 +624,17 @@ textarea.input {
   background: var(--surface);
   box-shadow: var(--shadow-1);
   transition:
-    transform 0.14s ease,
-    box-shadow 0.16s ease;
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .link-chip:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-2);
 }
 
 .link-chip:active {
-  transform: scale(0.97);
+  transform: scale(0.97) translateY(-2px);
   box-shadow: var(--shadow-1);
 }
 

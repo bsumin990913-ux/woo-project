@@ -1,9 +1,11 @@
-import { ArrowDown, ArrowUp, ChevronLeft, ExternalLink, Eye, Images, Link2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, Eye, Images, Link2, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import SortablePostList from "@/components/SortablePostList";
 import ConfirmButton from "@/components/ConfirmButton";
 import FolderForm from "@/components/FolderForm";
+import PostCreateModal from "@/components/PostCreateModal";
 import { deletePostAction, movePostAction } from "@/lib/actions";
 import { getFolder, listAllPosts } from "@/lib/queries";
 
@@ -64,112 +66,20 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
             <h2 className="t-h3 text-ink">글 {posts.length}개</h2>
             <p className="t-sub mt-1 text-[14px]">이 폴더의 공개 페이지에 순서대로 나열됩니다.</p>
           </div>
-          <Link href={`/admin/folders/${folder.id}/posts/new`} className="btn-primary btn-sm">
-            <Plus className="h-4 w-4" />새 글
-          </Link>
+          <PostCreateModal folderId={folder.id} />
         </div>
 
-        {posts.length === 0 ? (
+      {posts.length === 0 ? (
           <div className="card p-10 text-center">
             <p className="t-sub">아직 글이 없습니다.</p>
-            <Link href={`/admin/folders/${folder.id}/posts/new`} className="btn-primary mt-4">
-              첫 글 쓰기
-            </Link>
+            <div className="mt-4">
+              <PostCreateModal folderId={folder.id} />
+            </div>
           </div>
         ) : (
-          <ul className="space-y-3">
-            {posts.map((post, index) => (
-              <li key={post.id} className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                <div className="flex flex-col gap-1">
-                  <ReorderButton
-                    id={post.id}
-                    folderId={folder.id}
-                    direction="up"
-                    disabled={index === 0}
-                  />
-                  <ReorderButton
-                    id={post.id}
-                    folderId={folder.id}
-                    direction="down"
-                    disabled={index === posts.length - 1}
-                  />
-                </div>
-
-                {post.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.images[0]} alt="" className="rounded-tds-lg h-14 w-14 shrink-0 object-cover" />
-                ) : (
-                  <div className="rounded-tds-lg bg-surface-2 h-14 w-14 shrink-0" />
-                )}
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-ink truncate font-bold">{post.title}</h3>
-                    {!post.published && <span className="badge">비공개</span>}
-                  </div>
-                  <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
-                    <span className="inline-flex items-center gap-1">
-                      <Images className="h-3.5 w-3.5" strokeWidth={2} />
-                      {post.images.length}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Link2 className="h-3.5 w-3.5" strokeWidth={2} />
-                      {post.links.length}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5" strokeWidth={2} />
-                      {post.views.toLocaleString("ko-KR")}
-                    </span>
-                  </p>
-                </div>
-
-                <div className="flex shrink-0 gap-2">
-                  <Link href={`/admin/folders/${folder.id}/posts/${post.id}`} className="btn-ghost btn-sm">
-                    <Pencil className="h-3.5 w-3.5" />
-                    수정
-                  </Link>
-                  <form action={deletePostAction}>
-                    <input type="hidden" name="id" value={post.id} />
-                    <input type="hidden" name="folder_id" value={folder.id} />
-                    <ConfirmButton className="btn-danger btn-sm" message={`"${post.title}" 글을 삭제할까요?`}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                      삭제
-                    </ConfirmButton>
-                  </form>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <SortablePostList initialPosts={posts} folderId={folder.id} />
         )}
       </section>
     </>
-  );
-}
-
-function ReorderButton({
-  id,
-  folderId,
-  direction,
-  disabled,
-}: {
-  id: string;
-  folderId: string;
-  direction: "up" | "down";
-  disabled: boolean;
-}) {
-  return (
-    <form action={movePostAction}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="folder_id" value={folderId} />
-      <input type="hidden" name="direction" value={direction} />
-      <button
-        type="submit"
-        disabled={disabled}
-        aria-label={direction === "up" ? "위로" : "아래로"}
-        className="icon-btn h-6 w-6 rounded-md"
-      >
-        {direction === "up" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-      </button>
-    </form>
   );
 }

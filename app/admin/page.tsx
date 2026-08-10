@@ -1,6 +1,8 @@
-import { ArrowDown, ArrowUp, Eye, ExternalLink, FileText, Globe, Lock, Plus, Settings2, Trash2 } from "lucide-react";
+import { Eye, ExternalLink, FileText, Globe, Lock, Settings2, Trash2 } from "lucide-react";
 import Link from "next/link";
 
+import FolderCreateModal from "@/components/FolderCreateModal";
+import SortableFolderList from "@/components/SortableFolderList";
 import ConfirmButton from "@/components/ConfirmButton";
 import SetupNotice from "@/components/SetupNotice";
 import { deleteFolderAction, moveFolderAction, setIndexPublishedAction } from "@/lib/actions";
@@ -34,9 +36,7 @@ export default async function AdminHomePage() {
             폴더 하나가 공개 페이지 하나입니다. 순서를 바꾸면 방문자 화면에도 그대로 반영돼요.
           </p>
         </div>
-        <Link href="/admin/folders/new" className="btn-primary">
-          <Plus className="h-4 w-4" />새 폴더
-        </Link>
+        <FolderCreateModal />
       </div>
 
       {/* 첫 화면(전체 목록) 공개 여부 */}
@@ -98,103 +98,13 @@ export default async function AdminHomePage() {
       {folders.length === 0 ? (
         <div className="card p-14 text-center">
           <p className="t-sub">아직 폴더가 없습니다.</p>
-          <Link href="/admin/folders/new" className="btn-primary mt-5">
-            첫 폴더 만들기
-          </Link>
+          <div className="mt-5">
+            <FolderCreateModal />
+          </div>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {folders.map((folder, index) => (
-            <li
-              key={folder.id}
-              className="theme card flex flex-col gap-4 p-4 sm:flex-row sm:items-center"
-              style={brandStyle(folder.theme_color)}
-            >
-              <div className="flex flex-col gap-1">
-                <ReorderButton id={folder.id} direction="up" disabled={index === 0} />
-                <ReorderButton id={folder.id} direction="down" disabled={index === folders.length - 1} />
-              </div>
-
-              {folder.thumbnail_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={folder.thumbnail_url} alt="" className="rounded-tds-lg h-16 w-16 shrink-0 object-cover" />
-              ) : (
-                <div className="rounded-tds-lg bg-brand-weak text-brand flex h-16 w-16 shrink-0 items-center justify-center text-lg font-black">
-                  {folder.name.slice(0, 2)}
-                </div>
-              )}
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-ink truncate font-bold">{folder.name}</h2>
-                  {folder.published ? (
-                    <span className="badge badge-live">공개</span>
-                  ) : (
-                    <span className="badge">비공개</span>
-                  )}
-                  <span
-                    className="border-line inline-flex h-5 items-center gap-1.5 rounded-full border pr-2 pl-1 font-mono text-[10px] font-semibold tracking-tight uppercase"
-                    title="이 폴더의 테마 컬러"
-                  >
-                    <span className="bg-brand h-3 w-3 rounded-full" />
-                    {folder.theme_color}
-                  </span>
-                </div>
-                <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
-                  <span className="truncate">/{folder.slug}</span>
-                  <span className="inline-flex items-center gap-1">
-                    <FileText className="h-3.5 w-3.5" strokeWidth={2} />
-                    {folder.post_count}
-                  </span>
-                  <span className="inline-flex items-center gap-1" title="폴더 + 글 전체 조회수">
-                    <Eye className="h-3.5 w-3.5" strokeWidth={2} />
-                    {folder.total_views.toLocaleString("ko-KR")}
-                  </span>
-                </p>
-                {folder.description && <p className="text-ink-2 mt-1 truncate text-sm">{folder.description}</p>}
-              </div>
-
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <Link href={`/${encodeURIComponent(folder.slug)}`} target="_blank" className="btn-ghost btn-sm">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  보기
-                </Link>
-                <Link href={`/admin/folders/${folder.id}`} className="btn-primary btn-sm">
-                  <Settings2 className="h-3.5 w-3.5" />
-                  관리
-                </Link>
-                <form action={deleteFolderAction}>
-                  <input type="hidden" name="id" value={folder.id} />
-                  <ConfirmButton
-                    className="btn-danger btn-sm"
-                    message={`"${folder.name}" 폴더와 그 안의 글·사진이 모두 삭제됩니다. 계속할까요?`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    삭제
-                  </ConfirmButton>
-                </form>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <SortableFolderList initialFolders={folders} />
       )}
     </>
-  );
-}
-
-function ReorderButton({ id, direction, disabled }: { id: string; direction: "up" | "down"; disabled: boolean }) {
-  return (
-    <form action={moveFolderAction}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="direction" value={direction} />
-      <button
-        type="submit"
-        disabled={disabled}
-        aria-label={direction === "up" ? "위로" : "아래로"}
-        className="icon-btn h-6 w-6 rounded-md"
-      >
-        {direction === "up" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-      </button>
-    </form>
   );
 }

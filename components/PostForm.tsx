@@ -9,7 +9,7 @@ import SubmitButton from "@/components/SubmitButton";
 import { savePostAction, type FormState } from "@/lib/actions";
 import type { Post } from "@/lib/types";
 
-export default function PostForm({ folderId, post }: { folderId: string; post?: Post }) {
+export default function PostForm({ folderId, post, onSuccess }: { folderId: string; post?: Post; onSuccess?: () => void }) {
   const [state, formAction] = useActionState<FormState, FormData>(savePostAction, {});
 
   return (
@@ -74,9 +74,15 @@ export default function PostForm({ folderId, post }: { folderId: string; post?: 
         </label>
 
         <div className="flex gap-2">
-          <Link href={`/admin/folders/${folderId}`} className="btn-ghost">
-            취소
-          </Link>
+          {onSuccess ? (
+            <button type="button" className="btn-ghost" onClick={onSuccess}>
+              취소
+            </button>
+          ) : (
+            <Link href={`/admin/folders/${folderId}`} className="btn-ghost">
+              취소
+            </Link>
+          )}
           <SubmitButton>{post ? "변경사항 저장" : "글 등록"}</SubmitButton>
         </div>
       </section>

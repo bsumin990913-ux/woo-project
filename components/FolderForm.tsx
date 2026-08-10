@@ -11,7 +11,7 @@ import { saveFolderAction, type FormState } from "@/lib/actions";
 import { slugify } from "@/lib/platform";
 import type { Folder } from "@/lib/types";
 
-export default function FolderForm({ folder }: { folder?: Folder }) {
+export default function FolderForm({ folder, onSuccess }: { folder?: Folder; onSuccess?: () => void }) {
   const [state, formAction] = useActionState<FormState, FormData>(saveFolderAction, {});
   const [name, setName] = useState(folder?.name ?? "");
   const [slug, setSlug] = useState(folder?.slug ?? "");
@@ -136,9 +136,15 @@ export default function FolderForm({ folder }: { folder?: Folder }) {
         </label>
 
         <div className="flex gap-2">
-          <Link href="/admin" className="btn-ghost">
-            취소
-          </Link>
+          {onSuccess ? (
+            <button type="button" className="btn-ghost" onClick={onSuccess}>
+              취소
+            </button>
+          ) : (
+            <Link href="/admin" className="btn-ghost">
+              취소
+            </Link>
+          )}
           <SubmitButton>{folder ? "변경사항 저장" : "폴더 만들기"}</SubmitButton>
         </div>
       </section>
