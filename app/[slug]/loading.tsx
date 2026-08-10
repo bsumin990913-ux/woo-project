@@ -14,8 +14,6 @@ export default function FolderLoading() {
           <Bone className="h-8 w-44" />
           <Bone className="mt-2.5 h-4 w-64" />
         </div>
-
-        <Bone className="mt-6 h-[74px] w-full rounded-[18px]" />
       </div>
 
       <div className="mx-auto max-w-lg space-y-2 px-5 pb-16">

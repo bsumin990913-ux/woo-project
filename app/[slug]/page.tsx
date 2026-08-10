@@ -59,7 +59,6 @@ export default async function FolderPage({ params }: Params) {
   if (!folder) notFound();
 
   const posts = await listPublicPosts(folder.id);
-  const totalViews = folder.views + posts.reduce((sum, post) => sum + post.views, 0);
 
   return (
     <main className="theme bg-canvas min-h-screen" style={brandStyle(folder.theme_color)}>
@@ -90,13 +89,6 @@ export default async function FolderPage({ params }: Params) {
             <h1 className="t-h2 text-ink text-balance">{folder.name}</h1>
             {folder.description && <p className="t-sub mt-2 max-w-sm text-balance text-[14px]">{folder.description}</p>}
           </div>
-
-          {/* 요약 — 핵심 컬러 블록 */}
-          <div className="rise stat-block mt-6" style={{ animationDelay: "80ms" }}>
-            <Stat value={folder.links.length} label="링크" />
-            <Stat value={posts.length} label="글" />
-            <Stat value={totalViews} label="조회" />
-          </div>
         </div>
       </div>
 
@@ -122,7 +114,7 @@ export default async function FolderPage({ params }: Params) {
               <span className="t-caption">{posts.length}개</span>
             </div>
 
-            <ul className="card overflow-hidden">
+            <ul className="space-y-2.5">
               {posts.map((post, index) => (
                 <li key={post.id} className="rise" style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
                   <Link href={`/${encodeURIComponent(folder.slug)}/${post.id}`} className="list-row group">
@@ -167,15 +159,6 @@ export default async function FolderPage({ params }: Params) {
       </div>
       <ScrollToTop />
     </main>
-  );
-}
-
-function Stat({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="stat-cell">
-      <span className="stat-value">{value.toLocaleString("ko-KR")}</span>
-      <span className="stat-label">{label}</span>
-    </div>
   );
 }
 
