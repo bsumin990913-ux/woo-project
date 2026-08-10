@@ -23,7 +23,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import ConfirmButton from "@/components/ConfirmButton";
-import { deleteFolderAction, moveFolderAction } from "@/lib/actions";
+import { deleteFolderAction, moveFolderAction, toggleFolderPublishedAction } from "@/lib/actions";
 import { brandStyle } from "@/lib/theme";
 import type { FolderWithCount } from "@/lib/types";
 
@@ -69,7 +69,18 @@ export default function SortableFolderList({ initialFolders }: { initialFolders:
       <SortableContext items={folders.map((f) => f.id)} strategy={verticalListSortingStrategy}>
         <ul className="space-y-3">
           {folders.map((folder) => (
-            <SortableFolderItem key={folder.id} folder={folder} />
+            <SortableFolderItem
+              key={folder.id}
+              folder={folder}
+              onTogglePublish={async () => {
+                const newStatus = !folder.published;
+                setFolders((prev) =>
+                  prev.map((f) => (f.id === folder.id ? { ...f, published: newStatus } : f))
+                );
+                await toggleFolderPublishedAction(folder.id, newStatus);
+                toast.success(newStatus ? "공개로 변경되었습니다." : "비공개로 변경되었습니다.");
+              }}
+            />
           ))}
         </ul>
       </SortableContext>
@@ -77,7 +88,7 @@ export default function SortableFolderList({ initialFolders }: { initialFolders:
   );
 }
 
-function SortableFolderItem({ folder }: { folder: FolderWithCount }) {
+function SortableFolderItem({ folder, onTogglePublish }: { folder: FolderWithCount; onTogglePublish: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
 
   const style = {
@@ -114,11 +125,15 @@ function SortableFolderItem({ folder }: { folder: FolderWithCount }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-ink truncate font-bold">{folder.name}</h2>
-            {folder.published ? (
-              <span className="badge badge-live">공개</span>
-            ) : (
-              <span className="badge">비공개</span>
-            )}
+            <button
+              type="button"
+              onClick={onTogglePublish}
+              className={`transition-all hover:scale-105 active:scale-95 ${
+                folder.published ? "badge badge-live" : "badge"
+              }`}
+            >
+              {folder.published ? "공개" : "비공개"}
+            </button>
             <span
               className="border-line inline-flex h-5 items-center gap-1.5 rounded-full border pr-2 pl-1 font-mono text-[10px] font-semibold tracking-tight uppercase"
               title="이 폴더의 테마 컬러"

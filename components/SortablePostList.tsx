@@ -22,8 +22,9 @@ import Link from "next/link";
 import { useState } from "react";
 
 import ConfirmButton from "@/components/ConfirmButton";
-import { deletePostAction } from "@/lib/actions";
+import { deletePostAction, togglePostPublishedAction } from "@/lib/actions";
 import type { Post } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function SortablePostList({
   initialPosts,
@@ -64,7 +65,19 @@ export default function SortablePostList({
       <SortableContext items={posts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
         <ul className="space-y-3">
           {posts.map((post) => (
-            <SortablePostItem key={post.id} post={post} folderId={folderId} />
+            <SortablePostItem
+              key={post.id}
+              post={post}
+              folderId={folderId}
+              onTogglePublish={async () => {
+                const newStatus = !post.published;
+                setPosts((prev) =>
+                  prev.map((p) => (p.id === post.id ? { ...p, published: newStatus } : p))
+                );
+                await togglePostPublishedAction(post.id, newStatus);
+                toast.success(newStatus ? "공개로 변경되었습니다." : "비공개로 변경되었습니다.");
+              }}
+            />
           ))}
         </ul>
       </SortableContext>
@@ -72,7 +85,15 @@ export default function SortablePostList({
   );
 }
 
-function SortablePostItem({ post, folderId }: { post: Post; folderId: string }) {
+function SortablePostItem({
+  post,
+  folderId,
+  onTogglePublish,
+}: {
+  post: Post;
+  folderId: string;
+  onTogglePublish: () => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: post.id });
 
   const style = {
@@ -106,7 +127,15 @@ function SortablePostItem({ post, folderId }: { post: Post; folderId: string }) 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-ink truncate font-bold">{post.title}</h3>
-            {!post.published && <span className="badge">비공개</span>}
+            <button
+              type="button"
+              onClick={onTogglePublish}
+              className={`transition-all hover:scale-105 active:scale-95 ${
+                post.published ? "badge badge-live" : "badge"
+              }`}
+            >
+              {post.published ? "공개" : "비공개"}
+            </button>
           </div>
           <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
             <span className="inline-flex items-center gap-1">

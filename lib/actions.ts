@@ -184,6 +184,14 @@ export async function moveFolderAction(formData: FormData): Promise<void> {
   redirect("/admin");
 }
 
+export async function toggleFolderPublishedAction(id: string, published: boolean): Promise<void> {
+  await requireAdmin();
+  const db = supabaseAdmin();
+  await db.from("folders").update({ published }).eq("id", id);
+  const { data } = await db.from("folders").select("slug").eq("id", id).maybeSingle();
+  refreshPublic(data?.slug);
+}
+
 /* ── 글 ────────────────────────────────────────────────────── */
 
 export async function savePostAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -261,6 +269,17 @@ export async function movePostAction(formData: FormData): Promise<void> {
   const { data: folder } = await db.from("folders").select("slug").eq("id", folderId).maybeSingle();
   refreshPublic(folder?.slug);
   redirect(`/admin/folders/${folderId}`);
+}
+
+export async function togglePostPublishedAction(id: string, published: boolean): Promise<void> {
+  await requireAdmin();
+  const db = supabaseAdmin();
+  await db.from("posts").update({ published }).eq("id", id);
+  const { data } = await db.from("posts").select("folder_id").eq("id", id).maybeSingle();
+  if (data?.folder_id) {
+    const { data: folder } = await db.from("folders").select("slug").eq("id", data.folder_id).maybeSingle();
+    refreshPublic(folder?.slug, id);
+  }
 }
 
 /* ── 에러 문구 다듬기 ──────────────────────────────────────── */
