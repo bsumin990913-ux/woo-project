@@ -27,6 +27,17 @@
   --danger: #e42939;
   --danger-weak: #fdeced;
 
+  /* 컨트롤 높이. 나란히 놓이는 것들이 서로 어긋나지 않도록 한 곳에서만 정한다.
+     예전엔 btn-sm 34 / chip 32 / 아이콘버튼 36 이 섞여 헤더에서 밑선이 안 맞았다. */
+  --control-sm: 34px; /* 작은 버튼 · 칩 · 헤더 아이콘 버튼 (전부 동일) */
+  --control-md: 44px; /* 기본 버튼 */
+  --control-lg: 48px;
+  --control-xl: 56px;
+  --field-h: 50px; /* 입력 필드. 입력칸 옆 버튼은 이 높이에 맞춘다 */
+
+  /* 손가락으로 누르는 최소 영역 (Apple HIG · Material 공통 권장치) */
+  --tap-min: 44px;
+
   /* 그림자: TDS 는 공식 토큰이 없어 로컬 확장으로 아주 얕게만 쓴다 */
   --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.04);
   --shadow-2: 0 2px 8px -2px rgba(16, 24, 40, 0.08), 0 12px 28px -16px rgba(16, 24, 40, 0.18);
@@ -239,10 +250,17 @@ body {
   border-radius: 20px;
 }
 
-.sheet {
-  background: var(--surface);
-  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
-  box-shadow: 0 -8px 32px -20px rgba(16, 24, 40, 0.35);
+/* 카드 전체를 하나의 링크로 만든다.
+   카드 안에 따로 눌러야 하는 게 있으면 그 요소에 position:relative + z-index 를 준다. */
+.card-link {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.card-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
 }
 
 .sheet-grabber {
@@ -251,6 +269,225 @@ body {
   border-radius: 999px;
   background: var(--line);
   margin: 0 auto;
+}
+
+/* ── 다이얼로그 ──────────────────────────────────────────────
+   모바일에서는 아래에서 올라오는 바텀시트, 640px 이상에서는 가운데 모달.
+   (예전 코드는 tailwindcss-animate 의 animate-in / zoom-in-95 같은 클래스를
+    쓰고 있었는데 그 플러그인이 설치돼 있지 않아 전부 무시되고 있었다) */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(9, 12, 18, 0.44);
+  backdrop-filter: blur(3px);
+}
+
+.dialog-panel {
+  position: fixed;
+  z-index: 51;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 92dvh;
+  background: var(--canvas);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  box-shadow: var(--shadow-3);
+}
+
+.dialog-head {
+  position: relative;
+  flex-shrink: 0;
+  padding: 14px 20px 12px;
+}
+
+.dialog-title {
+  font-size: 19px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+
+/* 닫기 버튼. 예전엔 shadcn 토큰(ring-offset-background 등)을 쓰고 있어
+   스타일이 하나도 먹지 않는 16px 짜리 아이콘이었다. */
+.dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.dialog-close:hover {
+  background: color-mix(in srgb, var(--surface-2) 86%, var(--ink));
+  color: var(--ink);
+}
+.dialog-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.dialog-overlay[data-state="open"] {
+  animation: overlay-in 0.2s ease both;
+}
+.dialog-overlay[data-state="closed"] {
+  animation: overlay-out 0.16s ease both;
+}
+.dialog-panel[data-state="open"] {
+  animation: sheet-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.dialog-panel[data-state="closed"] {
+  animation: sheet-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@media (min-width: 640px) {
+  .dialog-panel {
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: 100%;
+    max-width: 640px;
+    max-height: 88dvh;
+    transform: translate(-50%, -50%);
+    border-radius: 24px;
+  }
+
+  .dialog-head {
+    padding: 20px 24px 14px;
+  }
+
+  .dialog-title {
+    font-size: 22px;
+    line-height: 32px;
+  }
+
+  .dialog-close {
+    top: 18px;
+    right: 18px;
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -46%) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  @keyframes dialog-out {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -46%) scale(0.97);
+    }
+  }
+
+  .dialog-panel[data-state="open"] {
+    animation: dialog-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .dialog-panel[data-state="closed"] {
+    animation: dialog-out 0.15s ease-in both;
+  }
+}
+
+/* ── 폼 레이아웃 ─────────────────────────────────────────────
+   일반 화면에서는 그냥 세로로 쌓고,
+   다이얼로그 안에서는 본문만 스크롤되고 저장 버튼은 아래에 고정된다.
+   (긴 폼에서 저장하려고 매번 끝까지 스크롤하던 문제) */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-stack[data-modal="true"] {
+  flex: 1;
+  gap: 0;
+  min-height: 0;
+}
+
+.form-stack[data-modal="true"] > .form-body {
+  gap: 16px;
+  padding: 0 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+
+.form-stack[data-modal="true"] > .form-actions {
+  flex-shrink: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+  padding: 14px 20px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+  .form-stack[data-modal="true"] > .form-body {
+    padding: 0 24px 24px;
+  }
+  .form-stack[data-modal="true"] > .form-actions {
+    padding: 16px 24px;
+  }
 }
 
 /* ── 핵심 컬러 통계 블록 (프로필 아래 요약 띠) ───────────── */
@@ -325,7 +562,7 @@ li + li > .list-row {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 44px;
+  height: var(--control-md);
   padding: 0 18px;
   border-radius: 12px;
   border: 1px solid transparent;
@@ -428,23 +665,28 @@ li + li > .list-row {
 
 /* 사이즈 */
 .btn-sm {
-  height: 34px;
+  height: var(--control-sm);
   padding: 0 12px;
   border-radius: var(--radius-tds-sm);
   font-size: 13px;
   gap: 4px;
 }
 .btn-lg {
-  height: 48px;
+  height: var(--control-lg);
   padding: 0 20px;
   border-radius: var(--radius-tds-lg);
   font-size: 16px;
 }
 .btn-xl {
-  height: 56px;
+  height: var(--control-xl);
   padding: 0 20px;
   border-radius: var(--radius-tds-xl);
   font-size: 17px;
+}
+/* 입력칸(50px) 옆에 나란히 놓는 버튼. 위아래가 딱 맞는다 */
+.btn-field {
+  height: var(--field-h);
+  border-radius: var(--radius-tds-lg);
 }
 .btn-block {
   display: flex;
@@ -582,6 +824,83 @@ textarea.input {
   color: color-mix(in srgb, #2fe0aa 80%, #fff);
 }
 
+/* ── 공개 / 비공개 스위치 ────────────────────────────────────
+   예전에는 배지(높이 24px, 화살표 커서)가 사실 버튼이라 눌러야 하는 줄 몰랐다. */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-sm);
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.switch:hover {
+  border-color: color-mix(in srgb, var(--line) 50%, var(--ink-3));
+}
+
+.switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+.switch:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.switch-track {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--ink-3);
+  opacity: 0.45;
+  transition:
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  transition: translate 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.switch[aria-checked="true"] {
+  border-color: color-mix(in srgb, #12b886 34%, var(--line));
+  background: color-mix(in srgb, #12b886 10%, var(--surface));
+  color: color-mix(in oklab, #12b886 82%, #000);
+}
+
+.dark .switch[aria-checked="true"] {
+  color: color-mix(in srgb, #2fe0aa 80%, #fff);
+}
+
+.switch[aria-checked="true"] .switch-track {
+  background: #12b886;
+  opacity: 1;
+}
+
+.switch[aria-checked="true"] .switch-thumb {
+  translate: 12px 0;
+}
+
 /* ── 링크 타일 (링크트리 본체) ──────────────────────────── */
 .link-tile {
   display: flex;
@@ -677,7 +996,7 @@ textarea.input {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: var(--control-sm);
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -685,6 +1004,7 @@ textarea.input {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-2);
+  cursor: pointer;
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
@@ -695,6 +1015,12 @@ textarea.input {
   border-color: var(--brand-line);
   background: var(--brand-weak);
   color: var(--brand-weak-fg);
+}
+
+.chip:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-ring);
 }
 
 .divider {
@@ -735,6 +1061,32 @@ textarea.input {
 .icon-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* 헤더에 놓는 아이콘 버튼. btn-sm 과 같은 높이라 밑선이 맞는다 */
+.icon-btn-sm {
+  width: var(--control-sm);
+  height: var(--control-sm);
+  border-radius: 999px;
+}
+
+/* ── 터치 영역 넓히기 ────────────────────────────────────────
+   보이는 크기는 그대로 두고 손가락이 닿는 영역만 44px 로 키운다.
+   ::after 를 스피너로 쓰는 .btn-loading 계열에는 쓰지 않는다. */
+.tap {
+  position: relative;
+}
+
+.tap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 100%;
+  height: 100%;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
 }
 
 /* ── 브랜드 히어로 배경 ─────────────────────────────────── */

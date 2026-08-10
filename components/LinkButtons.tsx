@@ -47,7 +47,9 @@ export default function LinkButtons({
 
   if (mode === "grid") {
     return (
-      <ul className="grid grid-cols-2 gap-2">
+      // 아주 좁은 화면(≈360px 이하)에서는 한 줄에 하나씩.
+      // 2열로 밀어 넣으면 "인스타그램 서브계정" 같은 라벨이 뭉텅 잘린다.
+      <ul className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
         {links.map((link, index) => {
           const platform = detectPlatform(link.url);
           const label = link.label.trim() || fallbackLabel(link.url);
@@ -55,7 +57,11 @@ export default function LinkButtons({
           const fillsRow = links.length % 2 === 1 && index === links.length - 1;
 
           return (
-            <li key={index} className={`rise ${fillsRow ? "col-span-2" : ""}`} style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
+            <li
+              key={index}
+              className={`rise ${fillsRow ? "min-[380px]:col-span-2" : ""}`}
+              style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+            >
               <a href={normalizeUrl(link.url)} target="_blank" rel="noopener noreferrer" className="link-chip">
                 <span
                   className="rounded-tds-md flex h-9 w-9 shrink-0 items-center justify-center"

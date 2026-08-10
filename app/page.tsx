@@ -64,31 +64,29 @@ export default async function HomePage() {
                 className="theme rise"
                 style={{ ...brandStyle(folder.theme_color), animationDelay: `${Math.min(index, 9) * 50}ms` }}
               >
-                <article className="card hover:shadow-card group flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1">
-                  <Link href={`/${encodeURIComponent(folder.slug)}`} className="block">
-                    <div className="bg-brand-weak relative aspect-[16/10] w-full overflow-hidden">
-                      {folder.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={folder.thumbnail_url}
-                          alt=""
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <span className="text-brand/35 absolute inset-0 flex items-center justify-center text-4xl font-black tracking-tight">
-                          {folder.name.slice(0, 2)}
-                        </span>
-                      )}
-                    </div>
+                <article className="card hover:shadow-card group relative flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1">
+                  <div className="bg-brand-weak relative aspect-[16/10] w-full overflow-hidden">
+                    {folder.thumbnail_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={folder.thumbnail_url}
+                        alt=""
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <span className="text-brand/35 absolute inset-0 flex items-center justify-center text-4xl font-black tracking-tight">
+                        {folder.name.slice(0, 2)}
+                      </span>
+                    )}
+                  </div>
 
-                    <div className="space-y-1.5 px-5 pt-4">
-                      <h2 className="t-h3 text-ink truncate">{folder.name}</h2>
-                      {folder.description && (
-                        <p className="text-ink-2 line-clamp-2 text-[14px] leading-6">{folder.description}</p>
-                      )}
-                    </div>
-                  </Link>
+                  <div className="space-y-1.5 px-5 pt-4">
+                    <h2 className="t-h3 text-ink truncate">{folder.name}</h2>
+                    {folder.description && (
+                      <p className="text-ink-2 line-clamp-2 text-[14px] leading-6">{folder.description}</p>
+                    )}
+                  </div>
 
                   <div className="text-ink-3 mt-auto flex items-center gap-3 px-5 pt-3.5 pb-4 text-[12px] font-semibold">
                     <span className="inline-flex items-center gap-1">
@@ -102,8 +100,16 @@ export default async function HomePage() {
                     <span className="group-hover:text-brand ml-auto transition-colors">/{folder.slug}</span>
                   </div>
 
+                  {/* 카드 전체가 링크다. 카드는 통째로 들썩이는데 아래쪽 절반은
+                      눌러도 아무 일이 없던 문제를 막는다. SNS 칩만 위로 띄운다. */}
+                  <Link
+                    href={`/${encodeURIComponent(folder.slug)}`}
+                    className="card-link"
+                    aria-label={`${folder.name} 폴더 열기`}
+                  />
+
                   {folder.links.length > 0 && (
-                    <div className="border-line border-t px-5 py-3.5">
+                    <div className="border-line relative z-10 border-t px-5 py-3.5">
                       <LinkButtons links={folder.links.slice(0, 4)} variant="chips" />
                     </div>
                   )}

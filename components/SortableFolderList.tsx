@@ -19,17 +19,25 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Eye, ExternalLink, FileText, Settings2, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import ConfirmButton from "@/components/ConfirmButton";
-import { deleteFolderAction, moveFolderAction, toggleFolderPublishedAction } from "@/lib/actions";
+import PostCreateModal from "@/components/PostCreateModal";
+import PublishSwitch from "@/components/PublishSwitch";
+import { deleteFolderAction, reorderFoldersAction, toggleFolderPublishedAction } from "@/lib/actions";
 import { brandStyle } from "@/lib/theme";
 import type { FolderWithCount } from "@/lib/types";
 
 export default function SortableFolderList({ initialFolders }: { initialFolders: FolderWithCount[] }) {
   const [folders, setFolders] = useState(initialFolders);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  // 저장이 날아가는 중에 서버 목록이 덮어쓰지 않게 잠깐 막는다
+  const savingRef = useRef(false);
+
+  useEffect(() => {
+    if (!savingRef.current) setFolders(initialFolders);
+  }, [initialFolders]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -42,26 +50,30 @@ export default function SortableFolderList({ initialFolders }: { initialFolders:
     })
   );
 
-  async function handleDragEnd(event: DragEndEvent) {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    if (over && active.id !== over.id) {
-      const oldIndex = folders.findIndex((f) => f.id === active.id);
-      const newIndex = folders.findIndex((f) => f.id === over.id);
+    const oldIndex = folders.findIndex((f) => f.id === active.id);
+    const newIndex = folders.findIndex((f) => f.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
 
-      const newFolders = arrayMove(folders, oldIndex, newIndex);
-      setFolders(newFolders);
+    // 화면은 즉시 바꾸고, 서버 저장이 실패하면 되돌린다
+    const previous = folders;
+    const next = arrayMove(folders, oldIndex, newIndex);
+    setFolders(next);
+    savingRef.current = true;
 
-      // determine direction
-      const direction = oldIndex > newIndex ? "up" : "down";
-      
-      // Calculate how many times it needs to move (simple implementation just moves it to target index)
-      // Actually, since our current action is just "up" or "down" one by one, 
-      // we need a new server action for `reorderFolderAction(id, newIndex)` 
-      // or we can just send multiple move actions.
-      // Wait, let's implement a better server action later. For now, we'll optimistically update 
-      // but to persist it properly, we'll need a new server action `reorderFolders` that takes an array of IDs.
-    }
+    startTransition(async () => {
+      try {
+        await reorderFoldersAction(next.map((f) => f.id));
+      } catch {
+        setFolders(previous);
+        toast.error("순서를 저장하지 못했습니다. 다시 시도해 주세요.");
+      } finally {
+        savingRef.current = false;
+      }
+    });
   }
 
   return (
@@ -69,18 +81,7 @@ export default function SortableFolderList({ initialFolders }: { initialFolders:
       <SortableContext items={folders.map((f) => f.id)} strategy={verticalListSortingStrategy}>
         <ul className="space-y-3">
           {folders.map((folder) => (
-            <SortableFolderItem
-              key={folder.id}
-              folder={folder}
-              onTogglePublish={async () => {
-                const newStatus = !folder.published;
-                setFolders((prev) =>
-                  prev.map((f) => (f.id === folder.id ? { ...f, published: newStatus } : f))
-                );
-                await toggleFolderPublishedAction(folder.id, newStatus);
-                toast.success(newStatus ? "공개로 변경되었습니다." : "비공개로 변경되었습니다.");
-              }}
-            />
+            <SortableFolderItem key={folder.id} folder={folder} />
           ))}
         </ul>
       </SortableContext>
@@ -88,7 +89,7 @@ export default function SortableFolderList({ initialFolders }: { initialFolders:
   );
 }
 
-function SortableFolderItem({ folder, onTogglePublish }: { folder: FolderWithCount; onTogglePublish: () => void }) {
+function SortableFolderItem({ folder }: { folder: FolderWithCount }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
 
   const style = {
@@ -125,15 +126,10 @@ function SortableFolderItem({ folder, onTogglePublish }: { folder: FolderWithCou
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-ink truncate font-bold">{folder.name}</h2>
-            <button
-              type="button"
-              onClick={onTogglePublish}
-              className={`transition-all hover:scale-105 active:scale-95 ${
-                folder.published ? "badge badge-live" : "badge"
-              }`}
-            >
-              {folder.published ? "공개" : "비공개"}
-            </button>
+            <PublishSwitch
+              published={folder.published}
+              onChange={(next) => toggleFolderPublishedAction(folder.id, next)}
+            />
             <span
               className="border-line inline-flex h-5 items-center gap-1.5 rounded-full border pr-2 pl-1 font-mono text-[10px] font-semibold tracking-tight uppercase"
               title="이 폴더의 테마 컬러"
@@ -157,23 +153,29 @@ function SortableFolderItem({ folder, onTogglePublish }: { folder: FolderWithCou
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-wrap gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {/* 이 폴더에 글을 쓰러 갈 때 "관리" 로 한 번 들어갔다 나올 필요가 없다 */}
+        <PostCreateModal folderId={folder.id} label="글" />
         <Link href={`/${encodeURIComponent(folder.slug)}`} target="_blank" className="btn-ghost btn-sm">
           <ExternalLink className="h-3.5 w-3.5" />
           보기
         </Link>
-        <Link href={`/admin/folders/${folder.id}`} className="btn-primary btn-sm">
+        <Link href={`/admin/folders/${folder.id}`} className="btn-ghost btn-sm">
           <Settings2 className="h-3.5 w-3.5" />
           관리
         </Link>
-        <form action={deleteFolderAction}>
+        <form action={deleteFolderAction} className="flex">
           <input type="hidden" name="id" value={folder.id} />
+          {/* 되돌릴 수 없는 동작이라 아이콘만 두고 무게를 낮춘다 */}
           <ConfirmButton
-            className="btn-danger btn-sm"
-            message={`"${folder.name}" 폴더와 그 안의 글·사진이 모두 삭제됩니다. 계속할까요?`}
+            className="btn-danger"
+            triggerClassName="icon-btn text-ink-3 hover:text-danger hover:border-danger/40 h-[34px] w-[34px] rounded-tds-sm"
+            title={`"${folder.name}" 폴더를 삭제할까요?`}
+            message="폴더 안의 글과 사진이 모두 함께 지워집니다. 되돌릴 수 없습니다."
+            confirmLabel="폴더 삭제"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            삭제
+            <span className="sr-only">삭제</span>
           </ConfirmButton>
         </form>
       </div>

@@ -67,7 +67,7 @@ export default async function FolderPage({ params }: Params) {
 
       <div className="brand-hero">
         <div className="mx-auto max-w-lg px-5 pt-4 pb-10">
-          <div className="mb-6 flex justify-end gap-2">
+          <div className="mb-6 flex items-center justify-end gap-2">
             <ShareButton title={folder.name} />
             <ThemeToggle />
           </div>
@@ -146,6 +146,7 @@ export default async function FolderPage({ params }: Params) {
                         <span className="text-ink-2 mt-0.5 line-clamp-1 block text-[13px] leading-5">{post.body}</span>
                       )}
                       <span className="text-ink-3 mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold">
+                        {postDate(post.created_at) && <span>{postDate(post.created_at)}</span>}
                         {post.images.length > 0 && <Meta icon={Images} value={post.images.length} />}
                         {post.links.length > 0 && <Meta icon={Link2} value={post.links.length} />}
                         <Meta icon={Eye} value={post.views} />
@@ -176,6 +177,20 @@ function Stat({ value, label }: { value: number; label: string }) {
       <span className="stat-label">{label}</span>
     </div>
   );
+}
+
+/** 작업 기록이라 목록에서 언제 올린 글인지 보이는 게 낫다. 올해 글은 연도를 생략한다. */
+function postDate(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString("ko-KR", {
+    year: sameYear ? undefined : "2-digit",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function Meta({ icon: Icon, value }: { icon: typeof Eye; value: number }) {

@@ -35,7 +35,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       onClick={toggle}
       aria-label={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
       title={theme === "dark" ? "라이트 모드" : "다크 모드"}
-      className={`icon-btn h-9 w-9 rounded-full ${className}`}
+      className={`icon-btn icon-btn-sm tap ${className}`}
     >
       {/* 하이드레이션 전에는 아이콘을 숨겨 깜빡임을 막는다 */}
       <span className={mounted ? "" : "opacity-0"}>

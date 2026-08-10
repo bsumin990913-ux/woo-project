@@ -1,19 +1,16 @@
-import { ChevronLeft, ExternalLink, Eye, Images, Link2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import SortablePostList from "@/components/SortablePostList";
-import ConfirmButton from "@/components/ConfirmButton";
 import FolderForm from "@/components/FolderForm";
 import PostCreateModal from "@/components/PostCreateModal";
-import { deletePostAction, movePostAction } from "@/lib/actions";
 import { getFolder, listAllPosts } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -22,9 +19,8 @@ export async function generateMetadata({ params }: Props) {
   return { title: folder ? folder.name : "폴더" };
 }
 
-export default async function EditFolderPage({ params, searchParams }: Props) {
+export default async function EditFolderPage({ params }: Props) {
   const { id } = await params;
-  const { saved } = await searchParams;
 
   const folder = await getFolder(id).catch(() => null);
   if (!folder) notFound();
@@ -54,10 +50,6 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      {saved && (
-        <p className="badge badge-live rounded-tds-lg mb-6 h-auto w-full px-4 py-3.5 text-sm">저장했습니다.</p>
-      )}
-
       <FolderForm folder={folder} />
 
       <section className="mt-12">
@@ -73,7 +65,7 @@ export default async function EditFolderPage({ params, searchParams }: Props) {
           <div className="card p-10 text-center">
             <p className="t-sub">아직 글이 없습니다.</p>
             <div className="mt-4">
-              <PostCreateModal folderId={folder.id} />
+              <PostCreateModal folderId={folder.id} size="md" label="첫 글 쓰기" />
             </div>
           </div>
         ) : (

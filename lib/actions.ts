@@ -4,12 +4,23 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSession, destroySession, isAdminPasswordSet, requireAdmin, verifyPassword } from "@/lib/auth";
+import { stripSize } from "@/lib/image";
 import { MEDIA_BUCKET, supabaseAdmin } from "@/lib/supabase";
 import { normalizeUrl } from "@/lib/platform";
 import { safeBrand } from "@/lib/theme";
 import { normalizeImages, normalizeLinks, type LinkItem } from "@/lib/types";
 
-export type FormState = { error?: string };
+/**
+ * 폼 액션의 결과.
+ * - `error` 가 있으면 폼 위에 그대로 띄운다.
+ * - `ok` 는 "저장됐다"는 신호. 클라이언트가 토스트를 띄우고 모달을 닫는 데 쓴다.
+ *   같은 값을 두 번 받아도 구분할 수 있게 매번 새 `at` 타임스탬프를 붙인다.
+ */
+export type FormState = { error?: string; ok?: boolean; at?: number };
+
+function saved(): FormState {
+  return { ok: true, at: Date.now() };
+}
 
 /* ── 공통 유틸 ─────────────────────────────────────────────── */
 
@@ -43,10 +54,12 @@ function parseImages(raw: string): string[] {
 
 /** 퍼블릭 URL → 스토리지 내부 경로 (삭제용). 우리 버킷이 아니면 null. */
 function storagePath(publicUrl: string): string | null {
+  // 주소 뒤에 붙은 `#가로x세로` 를 떼지 않으면 경로가 어긋나 파일이 지워지지 않는다
+  const clean = stripSize(publicUrl);
   const marker = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
-  const index = publicUrl.indexOf(marker);
+  const index = clean.indexOf(marker);
   if (index === -1) return null;
-  return decodeURIComponent(publicUrl.slice(index + marker.length));
+  return decodeURIComponent(clean.slice(index + marker.length));
 }
 
 async function removeFromStorage(urls: (string | null | undefined)[]): Promise<void> {
@@ -126,19 +139,31 @@ export async function saveFolderAction(_prev: FormState, formData: FormData): Pr
   };
 
   const db = supabaseAdmin();
-  let targetId = id;
 
+  // 수정: 이미 그 폴더 화면에 있으므로 이동하지 않는다. 토스트만 띄우면 된다.
   if (id) {
     const { error } = await db.from("folders").update(payload).eq("id", id);
     if (error) return { error: friendlyDbError(error.message, slug) };
-  } else {
-    const { data, error } = await db.from("folders").insert(payload).select("id").single();
-    if (error) return { error: friendlyDbError(error.message, slug) };
-    targetId = String(data.id);
+    refreshPublic(slug);
+    return saved();
   }
 
+  // 새로 만들 때만 이동한다. 만든 직후엔 그 폴더에 글을 넣으러 가는 게 자연스럽다.
+  const { data, error } = await db.from("folders").insert(payload).select("id").single();
+  if (error) return { error: friendlyDbError(error.message, slug) };
+
   refreshPublic(slug);
-  redirect(`/admin/folders/${targetId}?saved=1`);
+  redirect(`/admin/folders/${String(data.id)}`);
+}
+
+/** 드래그로 바뀐 순서를 통째로 저장한다. 배열 순서가 그대로 sort_order 가 된다. */
+export async function reorderFoldersAction(ids: string[]): Promise<void> {
+  await requireAdmin();
+  if (ids.length === 0) return;
+
+  const db = supabaseAdmin();
+  await Promise.all(ids.map((id, index) => db.from("folders").update({ sort_order: index }).eq("id", id)));
+  refreshPublic();
 }
 
 export async function deleteFolderAction(formData: FormData): Promise<void> {
@@ -156,31 +181,6 @@ export async function deleteFolderAction(formData: FormData): Promise<void> {
 
   await db.from("folders").delete().eq("id", id); // posts 는 ON DELETE CASCADE
   refreshPublic(folder?.slug);
-  redirect("/admin");
-}
-
-export async function moveFolderAction(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const id = str(formData, "id");
-  const direction = str(formData, "direction") === "up" ? -1 : 1;
-
-  const db = supabaseAdmin();
-  const { data } = await db
-    .from("folders")
-    .select("id, sort_order, created_at")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
-
-  const rows = (data ?? []) as { id: string }[];
-  const index = rows.findIndex((row) => row.id === id);
-  const target = index + direction;
-  if (index === -1 || target < 0 || target >= rows.length) redirect("/admin");
-
-  const reordered = [...rows];
-  [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
-  await Promise.all(reordered.map((row, i) => db.from("folders").update({ sort_order: i }).eq("id", row.id)));
-
-  refreshPublic();
   redirect("/admin");
 }
 
@@ -224,7 +224,11 @@ export async function savePostAction(_prev: FormState, formData: FormData): Prom
 
   const { data: folder } = await db.from("folders").select("slug").eq("id", folderId).maybeSingle();
   refreshPublic(folder?.slug, id || undefined);
-  redirect(`/admin/folders/${folderId}?saved=1`);
+
+  // 리다이렉트하지 않는다. 모달에서 등록한 경우 같은 주소로 되돌아오면
+  // 모달이 열린 채로 남아 "저장이 안 됐나?" 하고 한 번 더 누르게 된다.
+  // 어디로 갈지는 화면 쪽에서 정하게 두고, 여기서는 결과만 알려 준다.
+  return saved();
 }
 
 export async function deletePostAction(formData: FormData): Promise<void> {
@@ -243,32 +247,16 @@ export async function deletePostAction(formData: FormData): Promise<void> {
   redirect(`/admin/folders/${folderId}`);
 }
 
-export async function movePostAction(formData: FormData): Promise<void> {
+/** 드래그로 바뀐 순서를 통째로 저장한다. 배열 순서가 그대로 sort_order 가 된다. */
+export async function reorderPostsAction(folderId: string, ids: string[]): Promise<void> {
   await requireAdmin();
-  const id = str(formData, "id");
-  const folderId = str(formData, "folder_id");
-  const direction = str(formData, "direction") === "up" ? -1 : 1;
+  if (ids.length === 0) return;
 
   const db = supabaseAdmin();
-  const { data } = await db
-    .from("posts")
-    .select("id, sort_order, created_at")
-    .eq("folder_id", folderId)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
-
-  const rows = (data ?? []) as { id: string }[];
-  const index = rows.findIndex((row) => row.id === id);
-  const target = index + direction;
-  if (index === -1 || target < 0 || target >= rows.length) redirect(`/admin/folders/${folderId}`);
-
-  const reordered = [...rows];
-  [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
-  await Promise.all(reordered.map((row, i) => db.from("posts").update({ sort_order: i }).eq("id", row.id)));
+  await Promise.all(ids.map((id, index) => db.from("posts").update({ sort_order: index }).eq("id", id)));
 
   const { data: folder } = await db.from("folders").select("slug").eq("id", folderId).maybeSingle();
   refreshPublic(folder?.slug);
-  redirect(`/admin/folders/${folderId}`);
 }
 
 export async function togglePostPublishedAction(id: string, published: boolean): Promise<void> {

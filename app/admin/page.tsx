@@ -1,13 +1,10 @@
-import { Eye, ExternalLink, FileText, Globe, Lock, Settings2, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { Globe, Lock } from "lucide-react";
 
 import FolderCreateModal from "@/components/FolderCreateModal";
 import SortableFolderList from "@/components/SortableFolderList";
-import ConfirmButton from "@/components/ConfirmButton";
 import SetupNotice from "@/components/SetupNotice";
-import { deleteFolderAction, moveFolderAction, setIndexPublishedAction } from "@/lib/actions";
+import { setIndexPublishedAction } from "@/lib/actions";
 import { getSettingsForAdmin, listAllFolders } from "@/lib/queries";
-import { brandStyle } from "@/lib/theme";
 import type { FolderWithCount, SiteSettings } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -109,7 +106,7 @@ export default async function AdminHomePage() {
         <div className="card p-14 text-center">
           <p className="t-sub">아직 폴더가 없습니다.</p>
           <div className="mt-5">
-            <FolderCreateModal />
+            <FolderCreateModal label="첫 폴더 만들기" />
           </div>
         </div>
       ) : (

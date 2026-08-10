@@ -19,10 +19,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Eye, Images, Link2, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import ConfirmButton from "@/components/ConfirmButton";
-import { deletePostAction, togglePostPublishedAction } from "@/lib/actions";
+import PublishSwitch from "@/components/PublishSwitch";
+import { deletePostAction, reorderPostsAction, togglePostPublishedAction } from "@/lib/actions";
 import type { Post } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -34,6 +35,13 @@ export default function SortablePostList({
   folderId: string;
 }) {
   const [posts, setPosts] = useState(initialPosts);
+  const [, startTransition] = useTransition();
+  // 저장이 날아가는 중에 서버 목록이 덮어쓰지 않게 잠깐 막는다
+  const savingRef = useRef(false);
+
+  useEffect(() => {
+    if (!savingRef.current) setPosts(initialPosts);
+  }, [initialPosts]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -46,18 +54,30 @@ export default function SortablePostList({
     })
   );
 
-  async function handleDragEnd(event: DragEndEvent) {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    if (over && active.id !== over.id) {
-      const oldIndex = posts.findIndex((p) => p.id === active.id);
-      const newIndex = posts.findIndex((p) => p.id === over.id);
+    const oldIndex = posts.findIndex((p) => p.id === active.id);
+    const newIndex = posts.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
 
-      const newPosts = arrayMove(posts, oldIndex, newIndex);
-      setPosts(newPosts);
+    // 화면은 즉시 바꾸고, 서버 저장이 실패하면 되돌린다
+    const previous = posts;
+    const next = arrayMove(posts, oldIndex, newIndex);
+    setPosts(next);
+    savingRef.current = true;
 
-      // We should ideally call a reorderPostAction here to persist the new order.
-    }
+    startTransition(async () => {
+      try {
+        await reorderPostsAction(folderId, next.map((p) => p.id));
+      } catch {
+        setPosts(previous);
+        toast.error("순서를 저장하지 못했습니다. 다시 시도해 주세요.");
+      } finally {
+        savingRef.current = false;
+      }
+    });
   }
 
   return (
@@ -65,19 +85,7 @@ export default function SortablePostList({
       <SortableContext items={posts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
         <ul className="space-y-3">
           {posts.map((post) => (
-            <SortablePostItem
-              key={post.id}
-              post={post}
-              folderId={folderId}
-              onTogglePublish={async () => {
-                const newStatus = !post.published;
-                setPosts((prev) =>
-                  prev.map((p) => (p.id === post.id ? { ...p, published: newStatus } : p))
-                );
-                await togglePostPublishedAction(post.id, newStatus);
-                toast.success(newStatus ? "공개로 변경되었습니다." : "비공개로 변경되었습니다.");
-              }}
-            />
+            <SortablePostItem key={post.id} post={post} folderId={folderId} />
           ))}
         </ul>
       </SortableContext>
@@ -85,15 +93,7 @@ export default function SortablePostList({
   );
 }
 
-function SortablePostItem({
-  post,
-  folderId,
-  onTogglePublish,
-}: {
-  post: Post;
-  folderId: string;
-  onTogglePublish: () => void;
-}) {
+function SortablePostItem({ post, folderId }: { post: Post; folderId: string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: post.id });
 
   const style = {
@@ -127,15 +127,7 @@ function SortablePostItem({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-ink truncate font-bold">{post.title}</h3>
-            <button
-              type="button"
-              onClick={onTogglePublish}
-              className={`transition-all hover:scale-105 active:scale-95 ${
-                post.published ? "badge badge-live" : "badge"
-              }`}
-            >
-              {post.published ? "공개" : "비공개"}
-            </button>
+            <PublishSwitch published={post.published} onChange={(next) => togglePostPublishedAction(post.id, next)} />
           </div>
           <p className="text-ink-3 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold">
             <span className="inline-flex items-center gap-1">
@@ -154,17 +146,23 @@ function SortablePostItem({
         </div>
       </div>
 
-      <div className="flex shrink-0 gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Link href={`/admin/folders/${folderId}/posts/${post.id}`} className="btn-ghost btn-sm">
           <Pencil className="h-3.5 w-3.5" />
           수정
         </Link>
-        <form action={deletePostAction}>
+        <form action={deletePostAction} className="flex">
           <input type="hidden" name="id" value={post.id} />
           <input type="hidden" name="folder_id" value={folderId} />
-          <ConfirmButton className="btn-danger btn-sm" message={`"${post.title}" 글을 삭제할까요?`}>
+          <ConfirmButton
+            className="btn-danger"
+            triggerClassName="icon-btn text-ink-3 hover:text-danger hover:border-danger/40 h-[34px] w-[34px] rounded-tds-sm"
+            title={`"${post.title}" 글을 삭제할까요?`}
+            message="이 글에 올린 사진도 함께 지워집니다. 되돌릴 수 없습니다."
+            confirmLabel="글 삭제"
+          >
             <Trash2 className="h-3.5 w-3.5" />
-            삭제
+            <span className="sr-only">삭제</span>
           </ConfirmButton>
         </form>
       </div>

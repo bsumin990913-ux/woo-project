@@ -31,12 +31,13 @@ export default function ShareButton({ title, text, url }: { title: string; text?
 
   return (
     <button
+      type="button"
       onClick={handleShare}
-      className="btn-ghost btn-sm text-ink-3 hover:text-ink shrink-0 transition-colors"
+      className="icon-btn icon-btn-sm tap shrink-0"
       title="공유하기"
+      aria-label="공유하기"
     >
-      <Share className="h-4 w-4" />
-      <span className="sr-only">공유하기</span>
+      <Share className="h-[18px] w-[18px]" />
     </button>
   );
 }

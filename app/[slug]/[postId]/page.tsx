@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 
 import Gallery from "@/components/Gallery";
 import LinkButtons from "@/components/LinkButtons";
+import ScrollToTop from "@/components/ScrollToTop";
+import ShareButton from "@/components/ShareButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import ViewCounter from "@/components/ViewCounter";
 import { getPublicFolderBySlug, getPublicPost, listPublicPostParams } from "@/lib/queries";
@@ -63,11 +65,14 @@ export default async function PostPage({ params }: Params) {
       <div className="brand-glow">
         <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
           <div className="mb-9 flex items-center justify-between gap-3">
-            <Link href={`/${encodeURIComponent(folder.slug)}`} className="chip min-w-0">
+            <Link href={`/${encodeURIComponent(folder.slug)}`} className="chip tap min-w-0">
               <ChevronLeft className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{folder.name}</span>
             </Link>
-            <ThemeToggle />
+            <div className="flex shrink-0 items-center gap-2">
+              <ShareButton title={post.title} text={post.body.slice(0, 80) || undefined} />
+              <ThemeToggle />
+            </div>
           </div>
 
           <header className="rise">
@@ -125,6 +130,7 @@ export default async function PostPage({ params }: Params) {
           </Link>
         </div>
       </div>
+      <ScrollToTop />
     </main>
   );
 }
