@@ -124,14 +124,14 @@ function SortablePostItem({ post, folderId }: { post: Post; folderId: string }) 
       </div>
 
       <div className="flex shrink-0 gap-2">
-        <Link href={\`/admin/folders/\${folderId}/posts/\${post.id}\`} className="btn-ghost btn-sm">
+        <Link href={`/admin/folders/${folderId}/posts/${post.id}`} className="btn-ghost btn-sm">
           <Pencil className="h-3.5 w-3.5" />
           수정
         </Link>
         <form action={deletePostAction}>
           <input type="hidden" name="id" value={post.id} />
           <input type="hidden" name="folder_id" value={folderId} />
-          <ConfirmButton className="btn-danger btn-sm" message={\`"\${post.title}" 글을 삭제할까요?\`}>
+          <ConfirmButton className="btn-danger btn-sm" message={`"${post.title}" 글을 삭제할까요?`}>
             <Trash2 className="h-3.5 w-3.5" />
             삭제
           </ConfirmButton>

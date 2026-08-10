@@ -141,11 +141,11 @@ function SortableFolderItem({ folder }: { folder: FolderWithCount }) {
       </div>
 
       <div className="flex shrink-0 flex-wrap gap-2">
-        <Link href={\`/\${encodeURIComponent(folder.slug)}\`} target="_blank" className="btn-ghost btn-sm">
+        <Link href={`/${encodeURIComponent(folder.slug)}`} target="_blank" className="btn-ghost btn-sm">
           <ExternalLink className="h-3.5 w-3.5" />
           보기
         </Link>
-        <Link href={\`/admin/folders/\${folder.id}\`} className="btn-primary btn-sm">
+        <Link href={`/admin/folders/${folder.id}`} className="btn-primary btn-sm">
           <Settings2 className="h-3.5 w-3.5" />
           관리
         </Link>
@@ -153,7 +153,7 @@ function SortableFolderItem({ folder }: { folder: FolderWithCount }) {
           <input type="hidden" name="id" value={folder.id} />
           <ConfirmButton
             className="btn-danger btn-sm"
-            message={\`"\${folder.name}" 폴더와 그 안의 글·사진이 모두 삭제됩니다. 계속할까요?\`}
+            message={`"${folder.name}" 폴더와 그 안의 글·사진이 모두 삭제됩니다. 계속할까요?`}
           >
             <Trash2 className="h-3.5 w-3.5" />
             삭제
